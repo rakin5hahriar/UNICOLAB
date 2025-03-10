@@ -1,78 +1,154 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 
-// Components
-import Header from './components/Header';
-import Footer from './components/Footer';
-import ProtectedRoute from './components/ProtectedRoute';
+// Utils
+import { logApiStatus, checkApiConnection } from './utils/apiCheck';
+
+// Auth Context
+import { AuthProvider } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
+
+// Layout Components
+import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';
 
 // Pages
 import Home from './pages/Home';
-import Users from './pages/Users';
-import AddUser from './pages/AddUser';
-import EditUser from './pages/EditUser';
-import UserDetailPage from './pages/UserDetailPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import WorkspaceDetail from './pages/WorkspaceDetail';
+import WorkspaceForm from './pages/WorkspaceForm';
+import WorkspaceFormPage from './pages/WorkspaceFormPage';
 
 // Course Workspace Pages
 import CoursesPage from './pages/CoursesPage';
 import CourseFormPage from './pages/CourseFormPage';
 import CourseDetailPage from './pages/CourseDetailPage';
-import WorkspaceFormPage from './pages/WorkspaceFormPage';
-import WorkspaceDetailPage from './pages/WorkspaceDetailPage';
+
+// Components
+import WorkspaceItemForm from './components/workspaceItems/WorkspaceItemForm';
+import PrivateRoute from './components/routing/PrivateRoute';
 import WorkspaceItemFormPage from './pages/WorkspaceItemFormPage';
 import WorkspaceItemDetailPage from './pages/WorkspaceItemDetailPage';
 
-// Context
-import { AuthProvider } from './context/AuthContext';
-
 function App() {
+  useEffect(() => {
+    // Log API status on startup
+    logApiStatus();
+    
+    // Check API connection and show toast if not connected
+    checkApiConnection().then(isConnected => {
+      if (!isConnected) {
+        toast.error('Cannot connect to the backend server. Please make sure it is running.', {
+          autoClose: false,
+        });
+      }
+    });
+  }, []);
+
   return (
     <AuthProvider>
-      <Router>
-        <div className="App">
-          <Header />
-          <main className="container">
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              
-              {/* Protected Routes - Require Authentication */}
-              <Route element={<ProtectedRoute requireAdmin={false} />}>
-                {/* User Routes */}
-                <Route path="/users" element={<Users />} />
-                <Route path="/users/:id" element={<UserDetailPage />} />
+      <NotificationProvider>
+        <Router>
+          <div className="App">
+            <Header />
+            <main className="container">
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                
+                {/* Protected Routes - Require Authentication */}
+                <Route path="/dashboard" element={
+                  <PrivateRoute>
+                    <Dashboard />
+                  </PrivateRoute>
+                } />
                 
                 {/* Course Routes */}
-                <Route path="/courses" element={<CoursesPage />} />
-                <Route path="/courses/add" element={<CourseFormPage />} />
-                <Route path="/courses/edit/:id" element={<CourseFormPage />} />
-                <Route path="/courses/:id" element={<CourseDetailPage />} />
+                <Route path="/courses" element={
+                  <PrivateRoute>
+                    <CoursesPage />
+                  </PrivateRoute>
+                } />
+                <Route path="/courses/new" element={
+                  <PrivateRoute>
+                    <CourseFormPage />
+                  </PrivateRoute>
+                } />
+                <Route path="/courses/edit/:id" element={
+                  <PrivateRoute>
+                    <CourseFormPage />
+                  </PrivateRoute>
+                } />
+                <Route path="/courses/:id" element={
+                  <PrivateRoute>
+                    <CourseDetailPage />
+                  </PrivateRoute>
+                } />
+                
+                {/* Course Workspace Routes */}
+                <Route path="/courses/:courseId/workspaces/add" element={
+                  <PrivateRoute>
+                    <WorkspaceFormPage />
+                  </PrivateRoute>
+                } />
                 
                 {/* Workspace Routes */}
-                <Route path="/courses/:courseId/workspaces/add" element={<WorkspaceFormPage />} />
-                <Route path="/workspaces/edit/:id" element={<WorkspaceFormPage />} />
-                <Route path="/workspaces/:id" element={<WorkspaceDetailPage />} />
+                <Route path="/workspaces/:id" element={
+                  <PrivateRoute>
+                    <WorkspaceDetail />
+                  </PrivateRoute>
+                } />
+                <Route path="/workspaces/new" element={
+                  <PrivateRoute>
+                    <WorkspaceFormPage />
+                  </PrivateRoute>
+                } />
+                <Route path="/workspaces/edit/:id" element={
+                  <PrivateRoute>
+                    <WorkspaceFormPage />
+                  </PrivateRoute>
+                } />
                 
                 {/* Workspace Item Routes */}
-                <Route path="/workspaces/items/:id" element={<WorkspaceItemDetailPage />} />
-                <Route path="/workspaces/items/edit/:id" element={<WorkspaceItemFormPage />} />
-              </Route>
-              
-              {/* Admin Routes - Require Admin Role */}
-              <Route element={<ProtectedRoute requireAdmin={true} />}>
-                <Route path="/users/add" element={<AddUser />} />
-                <Route path="/users/edit/:id" element={<EditUser />} />
-              </Route>
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </Router>
+                <Route path="/workspace-items/new/:workspaceId" element={
+                  <PrivateRoute>
+                    <WorkspaceItemFormPage />
+                  </PrivateRoute>
+                } />
+                <Route path="/workspace-items/edit/:id" element={
+                  <PrivateRoute>
+                    <WorkspaceItemFormPage />
+                  </PrivateRoute>
+                } />
+                <Route path="/workspace-items/:id" element={
+                  <PrivateRoute>
+                    <WorkspaceItemDetailPage />
+                  </PrivateRoute>
+                } />
+              </Routes>
+            </main>
+            <Footer />
+            <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+            />
+          </div>
+        </Router>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

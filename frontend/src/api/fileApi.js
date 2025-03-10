@@ -55,7 +55,9 @@ export const deleteFile = async (filename) => {
   }
 };
 
-export default {
+const fileApiService = {
   uploadFile,
   deleteFile,
-}; 
+};
+
+export default fileApiService; 

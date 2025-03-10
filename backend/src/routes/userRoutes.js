@@ -1,27 +1,35 @@
 const express = require('express');
-const {
-  getUsers,
-  getUserById,
-  createUser,
-  updateUser,
-  deleteUser,
-} = require('../controllers/userController');
-const { protect, authorize } = require('../middleware/authMiddleware');
-
 const router = express.Router();
+const { protect, admin } = require('../middleware/authMiddleware');
 
-// All routes below this line are protected and require authentication
-router.use(protect);
+// Import controllers
+const {
+  registerUser,
+  loginUser,
+  getUserProfile,
+  updateUserProfile,
+  getUsers,
+  deleteUser,
+  getUserById,
+  updateUser,
+} = require('../controllers/userController');
 
-// GET all users - accessible by all authenticated users
-router.route('/').get(getUsers);
+// Public routes
+router.post('/register', registerUser);
+router.post('/login', loginUser);
 
-// POST new user - accessible only by admin
-router.route('/').post(authorize('admin'), createUser);
+// Protected routes
+router.route('/profile')
+  .get(protect, getUserProfile)
+  .put(protect, updateUserProfile);
 
-// GET, PUT, DELETE user by ID - accessible by admin or the user themselves
-router.route('/:id').get(getUserById);
-router.route('/:id').put(updateUser);
-router.route('/:id').delete(authorize('admin'), deleteUser);
+// Admin routes
+router.route('/')
+  .get(protect, admin, getUsers);
+
+router.route('/:id')
+  .get(protect, admin, getUserById)
+  .put(protect, admin, updateUser)
+  .delete(protect, admin, deleteUser);
 
 module.exports = router; 

@@ -1,19 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { deleteWorkspaceItem, updateWorkspaceItem } from '../../api/workspaceApi';
+import '../../pages/WorkspacePage.css';
 
 const WorkspaceItemList = ({ items, onItemDeleted }) => {
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this item?')) {
-      try {
-        await deleteWorkspaceItem(id);
-        if (onItemDeleted) {
-          onItemDeleted(id);
-        }
-      } catch (err) {
-        console.error('Failed to delete item:', err);
-        alert('Failed to delete item. Please try again.');
-      }
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleDeleteClick = (item) => {
+    setItemToDelete(item);
+    setShowDeleteModal(true);
+  };
+
+  const handleDelete = async () => {
+    if (!itemToDelete) return;
+    
+    try {
+      setIsDeleting(true);
+      await deleteWorkspaceItem(itemToDelete._id);
+      onItemDeleted(itemToDelete._id);
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    } catch (err) {
+      console.error('Failed to delete item:', err);
+      setError('Failed to delete item. Please try again.');
+      setIsDeleting(false);
     }
   };
 
@@ -35,19 +48,19 @@ const WorkspaceItemList = ({ items, onItemDeleted }) => {
   const getItemIcon = (type) => {
     switch (type) {
       case 'note':
-        return 'fas fa-sticky-note';
+        return 'sticky-note';
       case 'assignment':
-        return 'fas fa-tasks';
+        return 'tasks';
       case 'reading':
-        return 'fas fa-book';
+        return 'book';
       case 'pdf':
-        return 'fas fa-file-pdf';
+        return 'file-pdf';
       case 'document':
-        return 'fas fa-file-word';
+        return 'file-word';
       case 'video':
-        return 'fas fa-video';
+        return 'video';
       default:
-        return 'fas fa-file';
+        return 'file';
     }
   };
 
@@ -121,79 +134,98 @@ const WorkspaceItemList = ({ items, onItemDeleted }) => {
   }
 
   return (
-    <div className="workspace-item-list">
-      {items.map((item) => (
-        <div
-          key={item._id}
-          className={`workspace-item-card ${item.completed ? 'completed' : ''}`}
-        >
-          <div className="item-header">
-            <div className="item-type">
-              <i className={getItemIcon(item.type)}></i>
-              <span>{item.type.charAt(0).toUpperCase() + item.type.slice(1)}</span>
+    <>
+      <div className="workspace-items-grid">
+        {items.map(item => (
+          <div key={item._id} className="workspace-card">
+            <div className="workspace-card-header">
+              <div className="workspace-icon">
+                <i className={`fas fa-${getItemIcon(item.type)}`}></i>
+              </div>
+              <div className="workspace-info">
+                <h3>{item.title}</h3>
+                <div className="workspace-meta">
+                  <span>
+                    <i className="fas fa-tag"></i>
+                    {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                  </span>
+                  {item.dueDate && (
+                    <span>
+                      <i className="fas fa-calendar"></i>
+                      {new Date(item.dueDate).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="item-actions">
-              <Link
-                to={`/workspaces/items/${item._id}`}
-                className="btn btn-sm btn-info"
-              >
-                <i className="fas fa-eye"></i>
-              </Link>
-              <Link
-                to={`/workspaces/items/edit/${item._id}`}
-                className="btn btn-sm btn-secondary"
-              >
-                <i className="fas fa-edit"></i>
-              </Link>
+            <div className="workspace-content">
+              <p className="workspace-description">
+                {item.content || 'No description available'}
+              </p>
+              <div className="workspace-actions">
+                <Link
+                  to={`/workspace-items/${item._id}`}
+                  className="workspace-btn view-workspace-btn"
+                >
+                  <i className="fas fa-eye"></i>
+                  View
+                </Link>
+                <Link
+                  to={`/workspace-items/edit/${item._id}`}
+                  className="workspace-btn edit-workspace-btn"
+                >
+                  <i className="fas fa-edit"></i>
+                  Edit
+                </Link>
+                <button
+                  onClick={() => handleDeleteClick(item)}
+                  className="workspace-btn delete-workspace-btn"
+                  disabled={isDeleting}
+                >
+                  <i className="fas fa-trash-alt"></i>
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Delete Item</h3>
+            <p>Are you sure you want to delete this item? This action cannot be undone.</p>
+            <div className="modal-actions">
               <button
-                onClick={() => handleDelete(item._id)}
-                className="btn btn-sm btn-danger"
+                onClick={() => setShowDeleteModal(false)}
+                className="workspace-btn edit-workspace-btn"
               >
-                <i className="fas fa-trash"></i>
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="workspace-btn delete-workspace-btn"
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="loading-spinner"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-trash-alt"></i>
+                    Delete
+                  </>
+                )}
               </button>
             </div>
           </div>
-          <div className="item-title">
-            {item.type === 'assignment' && (
-              <div className="completion-checkbox">
-                <input
-                  type="checkbox"
-                  checked={item.completed}
-                  onChange={() => handleToggleComplete(item)}
-                  id={`complete-${item._id}`}
-                />
-                <label htmlFor={`complete-${item._id}`}></label>
-              </div>
-            )}
-            <h3>{item.title}</h3>
-          </div>
-          
-          {getItemPreview(item)}
-          
-          <div className="item-footer">
-            {item.dueDate && (
-              <div className="item-due-date">
-                <i className="fas fa-calendar"></i>
-                <span>Due: {formatDate(item.dueDate)}</span>
-              </div>
-            )}
-            {item.priority && item.type === 'assignment' && (
-              <div className={`item-priority ${item.priority}`}>
-                <span>{item.priority.charAt(0).toUpperCase() + item.priority.slice(1)}</span>
-              </div>
-            )}
-            {item.tags && item.tags.length > 0 && (
-              <div className="item-tags">
-                {item.tags.slice(0, 3).map((tag, index) => (
-                  <span key={index} className="tag-pill">{tag}</span>
-                ))}
-                {item.tags.length > 3 && <span className="tag-more">+{item.tags.length - 3}</span>}
-              </div>
-            )}
-          </div>
         </div>
-      ))}
-    </div>
+      )}
+    </>
   );
 };
 

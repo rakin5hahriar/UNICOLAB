@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getWorkspaceById, deleteWorkspace, getWorkspaceItems } from '../../api/workspaceApi';
 import WorkspaceItemList from '../workspaceItems/WorkspaceItemList';
 import WorkspaceItemForm from '../workspaceItems/WorkspaceItemForm';
+import '../../pages/WorkspacePage.css';
 
 const WorkspaceDetail = () => {
   const { id } = useParams();
@@ -11,8 +12,7 @@ const WorkspaceDetail = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showAddItemForm, setShowAddItemForm] = useState(false);
-  const [activeTab, setActiveTab] = useState('all');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     const fetchWorkspaceAndItems = async () => {
@@ -35,146 +35,140 @@ const WorkspaceDetail = () => {
   }, [id]);
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this workspace? This will also delete all items in this workspace.')) {
-      try {
-        await deleteWorkspace(id);
-        navigate(`/courses/${workspace.course._id}`);
-      } catch (err) {
-        setError(err.message || 'Failed to delete workspace');
-      }
+    try {
+      await deleteWorkspace(id);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Failed to delete workspace');
     }
   };
 
-  const handleItemAdded = (newItem) => {
-    setItems([newItem, ...items]);
-    setShowAddItemForm(false);
-  };
+  if (loading) {
+    return (
+      <div className="workspace-page">
+        <div className="loading">
+          <div className="loading-spinner"></div>
+        </div>
+      </div>
+    );
+  }
 
-  const handleItemDeleted = (itemId) => {
-    setItems(items.filter(item => item._id !== itemId));
-  };
+  if (error) {
+    return (
+      <div className="workspace-page">
+        <div className="empty-state">
+          <i className="fas fa-exclamation-circle"></i>
+          <h3>Error</h3>
+          <p>{error}</p>
+          <Link to="/dashboard" className="workspace-btn view-workspace-btn">
+            <i className="fas fa-arrow-left"></i>
+            Return to Dashboard
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
-  const filteredItems = activeTab === 'all' 
-    ? items 
-    : items.filter(item => item.type === activeTab);
-
-  // Count items by type
-  const itemCounts = items.reduce((counts, item) => {
-    counts[item.type] = (counts[item.type] || 0) + 1;
-    return counts;
-  }, {});
-
-  if (loading) return <div className="loading">Loading workspace...</div>;
-  if (error) return <div className="error">{error}</div>;
-  if (!workspace) return <div className="not-found">Workspace not found</div>;
+  if (!workspace) {
+    return (
+      <div className="workspace-page">
+        <div className="empty-state">
+          <i className="fas fa-folder-open"></i>
+          <h3>Workspace Not Found</h3>
+          <p>The workspace you're looking for doesn't exist or has been deleted.</p>
+          <Link to="/dashboard" className="workspace-btn view-workspace-btn">
+            <i className="fas fa-arrow-left"></i>
+            Return to Dashboard
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="workspace-detail">
-      <div 
-        className="workspace-header" 
-        style={{ backgroundColor: workspace.color }}
-      >
-        <div className="workspace-title">
-          <div className="workspace-icon">
-            <i className={`fas fa-${workspace.icon}`}></i>
+    <div className="workspace-page">
+      <div className="workspace-detail">
+        <div className="workspace-detail-header">
+          <div className="workspace-detail-info">
+            <h1>{workspace.name}</h1>
+            <p>{workspace.description}</p>
           </div>
-          <h2>{workspace.name}</h2>
+          <div className="workspace-detail-actions">
+            <Link
+              to={`/workspace-items/new/${workspace._id}`}
+              className="workspace-btn view-workspace-btn"
+            >
+              <i className="fas fa-plus"></i>
+              Add Item
+            </Link>
+            <Link
+              to={`/workspaces/edit/${workspace._id}`}
+              className="workspace-btn edit-workspace-btn"
+            >
+              <i className="fas fa-edit"></i>
+              Edit Workspace
+            </Link>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="workspace-btn delete-workspace-btn"
+            >
+              <i className="fas fa-trash-alt"></i>
+              Delete Workspace
+            </button>
+          </div>
         </div>
-        <div className="workspace-actions">
-          <Link to={`/workspaces/edit/${workspace._id}`} className="btn btn-light">
-            Edit Workspace
-          </Link>
-          <button onClick={handleDelete} className="btn btn-danger">
-            Delete Workspace
-          </button>
+
+        <div className="workspace-items">
+          <div className="workspace-items-header">
+            <h2>Workspace Items</h2>
+          </div>
+          {items.length === 0 ? (
+            <div className="empty-state">
+              <i className="fas fa-box-open"></i>
+              <h3>No Items Yet</h3>
+              <p>Start adding items to your workspace to get started.</p>
+              <Link
+                to={`/workspace-items/new/${workspace._id}`}
+                className="workspace-btn view-workspace-btn"
+              >
+                <i className="fas fa-plus"></i>
+                Add Your First Item
+              </Link>
+            </div>
+          ) : (
+            <div className="workspace-items-grid">
+              <WorkspaceItemList
+                items={items}
+                onItemDeleted={(itemId) => setItems(items.filter(item => item._id !== itemId))}
+              />
+            </div>
+          )}
         </div>
       </div>
 
-      {workspace.description && (
-        <div className="workspace-description">
-          <p>{workspace.description}</p>
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Delete Workspace</h3>
+            <p>Are you sure you want to delete this workspace? This action cannot be undone.</p>
+            <div className="modal-actions">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="workspace-btn edit-workspace-btn"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="workspace-btn delete-workspace-btn"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
-
-      <div className="workspace-course">
-        <Link to={`/courses/${workspace.course._id}`}>
-          <i className="fas fa-arrow-left"></i> Back to {workspace.course.title}
-        </Link>
-      </div>
-
-      <div className="workspace-content">
-        <div className="workspace-content-header">
-          <div className="content-tabs">
-            <button 
-              className={`tab-button ${activeTab === 'all' ? 'active' : ''}`}
-              onClick={() => setActiveTab('all')}
-            >
-              All Items <span className="count">{items.length}</span>
-            </button>
-            <button 
-              className={`tab-button ${activeTab === 'note' ? 'active' : ''}`}
-              onClick={() => setActiveTab('note')}
-            >
-              Notes <span className="count">{itemCounts.note || 0}</span>
-            </button>
-            <button 
-              className={`tab-button ${activeTab === 'assignment' ? 'active' : ''}`}
-              onClick={() => setActiveTab('assignment')}
-            >
-              Assignments <span className="count">{itemCounts.assignment || 0}</span>
-            </button>
-            <button 
-              className={`tab-button ${activeTab === 'reading' ? 'active' : ''}`}
-              onClick={() => setActiveTab('reading')}
-            >
-              Readings <span className="count">{itemCounts.reading || 0}</span>
-            </button>
-            <button 
-              className={`tab-button ${activeTab === 'pdf' ? 'active' : ''}`}
-              onClick={() => setActiveTab('pdf')}
-            >
-              PDFs <span className="count">{itemCounts.pdf || 0}</span>
-            </button>
-            <button 
-              className={`tab-button ${activeTab === 'document' ? 'active' : ''}`}
-              onClick={() => setActiveTab('document')}
-            >
-              Documents <span className="count">{itemCounts.document || 0}</span>
-            </button>
-            <button 
-              className={`tab-button ${activeTab === 'video' ? 'active' : ''}`}
-              onClick={() => setActiveTab('video')}
-            >
-              Videos <span className="count">{itemCounts.video || 0}</span>
-            </button>
-            <button 
-              className={`tab-button ${activeTab === 'other' ? 'active' : ''}`}
-              onClick={() => setActiveTab('other')}
-            >
-              Other <span className="count">{itemCounts.other || 0}</span>
-            </button>
-          </div>
-          <button 
-            className="btn btn-primary"
-            onClick={() => setShowAddItemForm(!showAddItemForm)}
-          >
-            {showAddItemForm ? 'Cancel' : 'Add Item'}
-          </button>
-        </div>
-
-        {showAddItemForm && (
-          <WorkspaceItemForm 
-            workspaceId={workspace._id} 
-            courseId={workspace.course._id}
-            onItemAdded={handleItemAdded}
-          />
-        )}
-
-        <WorkspaceItemList 
-          items={filteredItems} 
-          onItemDeleted={handleItemDeleted}
-        />
-      </div>
     </div>
   );
 };

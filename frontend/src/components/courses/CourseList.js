@@ -33,23 +33,38 @@ const CourseList = () => {
     }
   };
 
-  if (loading) return <div className="loading">Loading courses...</div>;
-  if (error) return <div className="error">{error}</div>;
+  if (loading) return (
+    <div className="loading">
+      <i className="fas fa-spinner fa-spin"></i> Loading courses...
+    </div>
+  );
+  
+  if (error) return (
+    <div className="error">
+      <i className="fas fa-exclamation-circle"></i> {error}
+    </div>
+  );
 
   return (
     <div className="course-list">
       <div className="course-list-header">
-        <h2>My Courses</h2>
-        <Link to="/courses/add" className="btn btn-primary">
-          Add New Course
+        <h2>
+          My Courses
+          {courses.length > 0 && (
+            <span className="course-count">{courses.length}</span>
+          )}
+        </h2>
+        <Link to="/courses/add" className="btn-primary">
+          <i className="fas fa-plus"></i> Add New Course
         </Link>
       </div>
 
       {courses.length === 0 ? (
         <div className="empty-state">
+          <i className="fas fa-book-open fa-3x" style={{ color: '#3498db', marginBottom: '20px' }}></i>
           <p>You haven't added any courses yet.</p>
-          <Link to="/courses/add" className="btn btn-primary">
-            Add Your First Course
+          <Link to="/courses/add" className="btn-primary">
+            <i className="fas fa-plus"></i> Add Your First Course
           </Link>
         </div>
       ) : (
@@ -65,11 +80,13 @@ const CourseList = () => {
                 <div className="course-details">
                   {course.instructor && (
                     <p>
+                      <i className="fas fa-user-tie" style={{ marginRight: '8px', color: '#6c757d' }}></i>
                       <strong>Instructor:</strong> {course.instructor}
                     </p>
                   )}
                   {course.semester && course.year && (
                     <p>
+                      <i className="fas fa-calendar-alt" style={{ marginRight: '8px', color: '#6c757d' }}></i>
                       <strong>Term:</strong> {course.semester} {course.year}
                     </p>
                   )}
@@ -77,16 +94,16 @@ const CourseList = () => {
               </div>
               <div className="course-card-footer">
                 <Link to={`/courses/${course._id}`} className="btn btn-info">
-                  View Workspaces
+                  <i className="fas fa-folder-open"></i> View Workspaces
                 </Link>
                 <Link to={`/courses/edit/${course._id}`} className="btn btn-secondary">
-                  Edit
+                  <i className="fas fa-edit"></i> Edit
                 </Link>
                 <button
                   onClick={() => handleDelete(course._id)}
                   className="btn btn-danger"
                 >
-                  Delete
+                  <i className="fas fa-trash-alt"></i> Delete
                 </button>
               </div>
             </div>

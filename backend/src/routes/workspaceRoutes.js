@@ -1,33 +1,27 @@
 const express = require('express');
+const router = express.Router();
+const { protect } = require('../middleware/authMiddleware');
 const {
   getWorkspaces,
-  getWorkspacesByCourse,
   getWorkspace,
   createWorkspace,
   updateWorkspace,
   deleteWorkspace,
+  getWorkspacesByCourse
 } = require('../controllers/workspaceController');
-const {
-  getWorkspaceItems,
-  getWorkspaceItem,
-  createWorkspaceItem,
-  updateWorkspaceItem,
-  deleteWorkspaceItem,
-} = require('../controllers/workspaceItemController');
-const { protect } = require('../middleware/authMiddleware');
 
-const router = express.Router();
+// Get all workspaces and create a new workspace
+router.route('/')
+  .get(protect, getWorkspaces)
+  .post(protect, createWorkspace);
 
-// Protect all routes
-router.use(protect);
+// Get workspaces by course
+router.get('/course/:courseId', protect, getWorkspacesByCourse);
 
-// Workspace routes
-router.route('/').get(getWorkspaces).post(createWorkspace);
-router.route('/course/:courseId').get(getWorkspacesByCourse);
-router.route('/:id').get(getWorkspace).put(updateWorkspace).delete(deleteWorkspace);
-
-// Workspace item routes
-router.route('/:workspaceId/items').get(getWorkspaceItems).post(createWorkspaceItem);
-router.route('/items/:id').get(getWorkspaceItem).put(updateWorkspaceItem).delete(deleteWorkspaceItem);
+// Get, update, and delete a workspace by ID
+router.route('/:id')
+  .get(protect, getWorkspace)
+  .put(protect, updateWorkspace)
+  .delete(protect, deleteWorkspace);
 
 module.exports = router; 
