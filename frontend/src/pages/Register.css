@@ -1,0 +1,364 @@
+/* Register Page Styles */
+.register-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+  background-image: 
+    radial-gradient(circle at 0% 0%, #e0f2fe 0%, transparent 30%),
+    radial-gradient(circle at 100% 100%, #dbeafe 0%, transparent 30%),
+    radial-gradient(circle at 100% 0%, #ede9fe 0%, transparent 30%),
+    radial-gradient(circle at 0% 100%, #f0f9ff 0%, transparent 30%);
+}
+
+/* Decorative Elements */
+.register-container::before,
+.register-container::after {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.1));
+  animation: float 20s infinite alternate ease-in-out;
+}
+
+.register-container::before {
+  top: -300px;
+  right: -300px;
+}
+
+.register-container::after {
+  bottom: -300px;
+  left: -300px;
+  animation-delay: -10s;
+}
+
+@keyframes float {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  100% { transform: translate(50px, 50px) rotate(180deg); }
+}
+
+/* Register Card */
+.register-card-container {
+  width: 100%;
+  max-width: 460px;
+  padding: 2rem;
+  position: relative;
+  z-index: 10;
+  perspective: 1000px;
+}
+
+.register-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 3rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    0 20px 40px -12px rgba(0, 0, 0, 0.05),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  transform-style: preserve-3d;
+}
+
+.register-card:hover {
+  transform: translateY(-5px) rotateX(2deg);
+  box-shadow: 
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    0 25px 50px -12px rgba(0, 0, 0, 0.15),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.register-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(to right, #3b82f6, #6366f1);
+  border-radius: 2px;
+}
+
+.register-header h1 {
+  color: #1e293b;
+  font-size: 2.75rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.025em;
+  position: relative;
+}
+
+.register-header p {
+  color: #64748b;
+  font-size: 1.1rem;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+.form-group {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.form-group label {
+  display: block;
+  color: #475569;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  color: #1e293b;
+  font-size: 1.05rem;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.02),
+    inset 0 2px 4px rgba(255, 255, 255, 0.8);
+}
+
+.form-group input:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #ffffff;
+  box-shadow: 
+    0 0 0 4px rgba(59, 130, 246, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.05),
+    inset 0 2px 4px rgba(255, 255, 255, 0.8);
+}
+
+.form-group input:focus + label {
+  color: #3b82f6;
+  transform: translateY(-0.25rem);
+}
+
+.form-group input::placeholder {
+  color: #94a3b8;
+  opacity: 0.8;
+}
+
+/* Password Strength Indicator */
+.password-strength {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.strength-bars {
+  display: flex;
+  gap: 4px;
+  margin-top: 0.25rem;
+}
+
+.strength-bar {
+  height: 4px;
+  flex: 1;
+  border-radius: 2px;
+  background: #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.strength-bar.active {
+  background: linear-gradient(to right, #3b82f6, #6366f1);
+}
+
+.create-account-button {
+  width: 100%;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 4px 6px -1px rgba(59, 130, 246, 0.2),
+    0 2px 4px -2px rgba(59, 130, 246, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.create-account-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: 0.5s;
+}
+
+.create-account-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 12px -3px rgba(59, 130, 246, 0.3),
+    0 4px 6px -4px rgba(59, 130, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.create-account-button:hover::before {
+  left: 100%;
+}
+
+.create-account-button:active {
+  transform: translateY(0);
+  box-shadow: 
+    0 2px 4px -1px rgba(59, 130, 246, 0.2),
+    0 1px 2px -1px rgba(59, 130, 246, 0.1);
+}
+
+.login-prompt {
+  text-align: center;
+  margin-top: 2.5rem;
+  color: #475569;
+  font-size: 0.95rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
+  position: relative;
+}
+
+.login-prompt::before {
+  content: 'or';
+  position: absolute;
+  top: -0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 0 1rem;
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.login-prompt a {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  transition: all 0.3s ease;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  background: transparent;
+  display: inline-block;
+}
+
+.login-prompt a:hover {
+  color: #2563eb;
+  background: rgba(59, 130, 246, 0.08);
+  transform: translateY(-1px);
+}
+
+.error-message {
+  background: rgba(254, 242, 242, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid #fee2e2;
+  color: #991b1b;
+  padding: 1.25rem;
+  border-radius: 16px;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.error-message i {
+  color: #dc2626;
+  font-size: 1.25rem;
+}
+
+/* Loading animation */
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2.5px solid rgba(59, 130, 246, 0.2);
+  border-radius: 50%;
+  border-top-color: #3b82f6;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.1);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+  .register-card-container {
+    padding: 1rem;
+  }
+
+  .register-card {
+    padding: 2rem;
+    border-radius: 20px;
+  }
+
+  .register-header h1 {
+    font-size: 2.25rem;
+  }
+
+  .form-group input {
+    padding: 1rem;
+  }
+  
+  .register-container::before,
+  .register-container::after {
+    display: none;
+  }
+} 

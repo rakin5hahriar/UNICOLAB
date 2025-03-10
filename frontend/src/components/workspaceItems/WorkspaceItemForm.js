@@ -6,6 +6,9 @@ import {
   updateWorkspaceItem,
 } from '../../api/workspaceApi';
 import { uploadFile } from '../../api/fileApi';
+import confetti from 'canvas-confetti';
+import { toast } from 'react-toastify';
+import { createNotification } from '../../api/notificationApi';
 
 // Allowed file types
 const ALLOWED_FILE_TYPES = {
@@ -50,6 +53,12 @@ const WorkspaceItemForm = ({ workspaceId, courseId, onItemAdded }) => {
     dueDate: '',
     priority: 'medium',
     tags: [],
+    checklistItems: [],
+    reminderDate: '',
+    reminderTime: '',
+    reminderEnabled: false,
+    status: 'not-started', // For assignments: not-started, in-progress, completed
+    completionPercentage: 0,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -58,6 +67,29 @@ const WorkspaceItemForm = ({ workspaceId, courseId, onItemAdded }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [checklistItemInput, setChecklistItemInput] = useState('');
+
+  const priorityColors = {
+    low: '#28a745',
+    medium: '#ffc107',
+    high: '#dc3545',
+  };
+
+  const getPriorityBadge = (priority) => {
+    return (
+      <span
+        style={{
+          backgroundColor: priorityColors[priority],
+          color: 'white',
+          padding: '5px 10px',
+          borderRadius: '5px',
+          fontSize: '12px',
+        }}
+      >
+        {priority.charAt(0).toUpperCase() + priority.slice(1)}
+      </span>
+    );
+  };
 
   useEffect(() => {
     if (!isAddMode) {
@@ -80,6 +112,12 @@ const WorkspaceItemForm = ({ workspaceId, courseId, onItemAdded }) => {
             dueDate: item.dueDate ? new Date(item.dueDate).toISOString().split('T')[0] : '',
             priority: item.priority || 'medium',
             tags: item.tags || [],
+            checklistItems: item.checklistItems || [],
+            reminderDate: item.reminderDate ? new Date(item.reminderDate).toISOString().split('T')[0] : '',
+            reminderTime: item.reminderTime || '',
+            reminderEnabled: item.reminderEnabled || false,
+            status: item.status || 'not-started',
+            completionPercentage: item.completionPercentage || 0,
           });
           setLoading(false);
         } catch (err) {
@@ -218,37 +256,177 @@ const WorkspaceItemForm = ({ workspaceId, courseId, onItemAdded }) => {
     });
   };
 
+  // Handle checklist items
+  const handleChecklistItemAdd = () => {
+    if (checklistItemInput.trim()) {
+      setFormData({
+        ...formData,
+        checklistItems: [
+          ...formData.checklistItems,
+          { text: checklistItemInput.trim(), completed: false }
+        ],
+      });
+      setChecklistItemInput('');
+    }
+  };
+
+  const handleChecklistItemRemove = (index) => {
+    const updatedItems = [...formData.checklistItems];
+    updatedItems.splice(index, 1);
+    setFormData({
+      ...formData,
+      checklistItems: updatedItems,
+    });
+  };
+
+  const handleChecklistItemToggle = (index) => {
+    const updatedItems = [...formData.checklistItems];
+    const wasCompleted = updatedItems[index].completed;
+    updatedItems[index] = {
+      ...updatedItems[index],
+      completed: !wasCompleted
+    };
+    
+    // Calculate completion percentage for assignments
+    if (formData.type === 'assignment') {
+      const completedCount = updatedItems.filter(item => item.completed).length;
+      const totalCount = updatedItems.length;
+      const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+      
+      // Trigger confetti when all items are completed
+      if (percentage === 100 && !wasCompleted) {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      }
+      
+      setFormData({
+        ...formData,
+        checklistItems: updatedItems,
+        completionPercentage: percentage,
+        status: percentage === 100 ? 'completed' : percentage > 0 ? 'in-progress' : 'not-started'
+      });
+    } else {
+      setFormData({
+        ...formData,
+        checklistItems: updatedItems,
+      });
+    }
+    
+    // Add completion animation class
+    const checkbox = document.getElementById(`checklist-item-${index}`);
+    checkbox.classList.add('checkbox-pop');
+    setTimeout(() => checkbox.classList.remove('checkbox-pop'), 300);
+  };
+
+  const handleChecklistItemEdit = (index, newText) => {
+    const updatedItems = [...formData.checklistItems];
+    updatedItems[index] = {
+      ...updatedItems[index],
+      text: newText
+    };
+    setFormData({
+      ...formData,
+      checklistItems: updatedItems,
+    });
+  };
+
+  const handleReminderToggle = () => {
+    setFormData({
+      ...formData,
+      reminderEnabled: !formData.reminderEnabled
+    });
+    
+    // Show toast when reminder is enabled
+    if (!formData.reminderEnabled) {
+      toast.info('Reminder will be set when you save the item');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    // Validate required fields
+    if (!formData.title) {
+      setError('Title is required');
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.workspace) {
+      setError('Workspace ID is missing');
+      setLoading(false);
+      return;
+    }
+
     try {
-      setLoading(true);
-      
-      // If there's a file to upload and it hasn't been uploaded yet, upload it first
-      if (file && !uploadSuccess) {
-        const uploadedFile = await handleFileUpload();
-        if (!uploadedFile) {
-          setLoading(false);
-          return; // Stop if file upload failed
-        }
-      }
-      
-      let result;
-      
+      let response;
       if (isAddMode) {
-        result = await createWorkspaceItem(formData.workspace, formData);
-        if (onItemAdded) {
-          onItemAdded(result);
+        // Create new item
+        const itemData = {
+          ...formData,
+          workspace: formData.workspace, // Ensure workspace ID is included
+          course: formData.course // Ensure course ID is included
+        };
+        
+        response = await createWorkspaceItem(formData.workspace, itemData);
+        
+        // Create notification for new assignment with reminder
+        if (formData.type === 'assignment' && formData.reminderEnabled) {
+          await createNotification({
+            title: 'New Assignment Created',
+            message: `You've created "${formData.title}" with a reminder set for ${formData.reminderDate} at ${formData.reminderTime}`,
+            type: 'info',
+            relatedItem: response._id
+          });
+          
+          toast.success('Assignment created with reminder!');
         } else {
-          navigate(`/workspaces/${formData.workspace}`);
+          toast.success('Item created successfully!');
+        }
+        
+        if (onItemAdded) {
+          onItemAdded(response);
+        } else {
+          navigate(`/workspaces/${response.workspace}`);
         }
       } else {
-        result = await updateWorkspaceItem(id, formData);
-        navigate(`/workspaces/${formData.workspace}`);
+        response = await updateWorkspaceItem(id, formData);
+        
+        // Create notification for updated assignment with reminder
+        if (formData.type === 'assignment' && formData.reminderEnabled) {
+          await createNotification({
+            title: 'Assignment Updated',
+            message: `You've updated "${formData.title}" with a reminder set for ${formData.reminderDate} at ${formData.reminderTime}`,
+            type: 'info',
+            relatedItem: response._id
+          });
+          
+          toast.success('Assignment updated with reminder!');
+        } else {
+          toast.success('Item updated successfully!');
+        }
+        
+        navigate(`/workspaces/${response.workspace}`);
       }
       
-      setLoading(false);
+      // If it's a completed assignment, show confetti
+      if (formData.type === 'assignment' && formData.status === 'completed') {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      }
     } catch (err) {
-      setError(err.message || 'Failed to save item');
+      console.error('Error saving workspace item:', err);
+      setError(err.response?.data?.message || 'Failed to save workspace item');
+      toast.error('Failed to save item. Please try again.');
+    } finally {
       setLoading(false);
     }
   };
@@ -256,26 +434,42 @@ const WorkspaceItemForm = ({ workspaceId, courseId, onItemAdded }) => {
   // Helper function to extract YouTube video ID
   const extractYoutubeId = (url) => {
     if (!url) return '';
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    
+    // Handle various YouTube URL formats
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|youtube.com\/shorts\/)([^#&?]*).*/;
     const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : '';
+    
+    if (match && match[2].length === 11) {
+      console.log('YouTube video ID extracted:', match[2]);
+      return match[2];
+    }
+    
+    return '';
   };
 
   // Handle YouTube URL input
   const handleYoutubeUrlChange = (e) => {
     const url = e.target.value;
+    setFormData({
+      ...formData,
+      documentUrl: url,
+    });
+    
     const videoId = extractYoutubeId(url);
     
     if (videoId) {
+      console.log('Setting embed URL for video ID:', videoId);
       setFormData({
         ...formData,
-        embedUrl: `https://www.youtube.com/embed/${videoId}`,
         documentUrl: url,
+        embedUrl: `https://www.youtube.com/embed/${videoId}`,
       });
     } else {
+      // If not a valid YouTube URL, clear the embed URL
       setFormData({
         ...formData,
         documentUrl: url,
+        embedUrl: '',
       });
     }
   };
@@ -335,6 +529,85 @@ const WorkspaceItemForm = ({ workspaceId, courseId, onItemAdded }) => {
           </div>
         )}
 
+        {/* Checklist for notes and assignments */}
+        {(formData.type === 'note' || formData.type === 'assignment') && (
+          <div className="form-group">
+            <label>
+              {formData.type === 'note' ? 'Checklist' : 'Tasks'}
+              <span className="form-text"> (Add items to create a checklist)</span>
+            </label>
+            <div className="checklist-input-container">
+              <input
+                type="text"
+                value={checklistItemInput}
+                onChange={(e) => setChecklistItemInput(e.target.value)}
+                placeholder={formData.type === 'note' ? "Add checklist item and press Enter" : "Add task and press Enter"}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleChecklistItemAdd();
+                  }
+                }}
+              />
+              <button 
+                type="button" 
+                className="btn-primary btn-sm"
+                onClick={handleChecklistItemAdd}
+              >
+                <i className="fas fa-plus"></i> Add
+              </button>
+            </div>
+            
+            {formData.checklistItems.length > 0 && (
+              <div className="checklist-container">
+                {formData.checklistItems.map((item, index) => (
+                  <div key={index} className={`checklist-item ${item.completed ? 'completed' : ''}`}>
+                    <div className="checklist-item-content">
+                      <input
+                        type="checkbox"
+                        checked={item.completed}
+                        onChange={() => handleChecklistItemToggle(index)}
+                        id={`checklist-item-${index}`}
+                      />
+                      <input
+                        type="text"
+                        value={item.text}
+                        onChange={(e) => handleChecklistItemEdit(index, e.target.value)}
+                        className={item.completed ? 'completed-text' : ''}
+                      />
+                    </div>
+                    <button 
+                      type="button" 
+                      className="checklist-item-remove" 
+                      onClick={() => handleChecklistItemRemove(index)}
+                    >
+                      <i className="fas fa-times"></i>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {formData.type === 'assignment' && formData.checklistItems.length > 0 && (
+              <div className="completion-progress">
+                <div className="progress-label">
+                  <span>Progress: {formData.completionPercentage}%</span>
+                  <span className={`status-badge status-${formData.status}`}>
+                    {formData.status === 'not-started' ? 'Not Started' : 
+                     formData.status === 'in-progress' ? 'In Progress' : 'Completed'}
+                  </span>
+                </div>
+                <div className="progress-bar-container">
+                  <div 
+                    className="progress-bar" 
+                    style={{ width: `${formData.completionPercentage}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* File upload field for PDFs and other files */}
         {(formData.type === 'pdf' || formData.type === 'other') && (
           <div className="form-group">
@@ -354,10 +627,18 @@ const WorkspaceItemForm = ({ workspaceId, courseId, onItemAdded }) => {
                   {!uploadSuccess && (
                     <button 
                       onClick={handleUploadButtonClick}
-                      className="btn btn-primary btn-sm"
+                      className="btn-primary btn-sm"
                       disabled={isUploading}
                     >
-                      {isUploading ? 'Uploading...' : 'Upload Now'}
+                      {isUploading ? (
+                        <>
+                          <i className="fas fa-spinner fa-spin"></i> Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fas fa-cloud-upload-alt"></i> Upload Now
+                        </>
+                      )}
                     </button>
                   )}
                   {uploadSuccess && (
@@ -443,54 +724,123 @@ const WorkspaceItemForm = ({ workspaceId, courseId, onItemAdded }) => {
               name="documentUrl"
               value={formData.documentUrl}
               onChange={handleYoutubeUrlChange}
-              placeholder="Enter YouTube video URL"
+              placeholder="Enter YouTube video URL (e.g., https://www.youtube.com/watch?v=VIDEO_ID)"
             />
-            {formData.embedUrl && (
+            {formData.embedUrl ? (
               <div className="video-preview">
                 <h4>Video Preview:</h4>
-                <div className="embed-container">
+                <div className="embed-container" style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', maxWidth: '100%' }}>
                   <iframe
                     src={formData.embedUrl}
                     frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     title="Embedded YouTube video"
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
                   ></iframe>
                 </div>
               </div>
+            ) : formData.documentUrl && (
+              <div className="error-message">
+                <i className="fas fa-exclamation-triangle"></i> Not a valid YouTube URL. Please enter a valid YouTube URL.
+              </div>
             )}
+            <div className="form-text">
+              Supported formats: youtube.com/watch?v=ID, youtu.be/ID, youtube.com/shorts/ID
+            </div>
           </div>
         )}
 
         {/* Assignment and reading specific fields */}
         {(formData.type === 'assignment' || formData.type === 'reading') && (
-          <div className="form-row">
-            {formData.type === 'assignment' && (
+          <>
+            <div className="form-row">
+              {formData.type === 'assignment' && (
+                <div className="form-group">
+                  <label htmlFor="priority">Priority</label>
+                  <select
+                    id="priority"
+                    name="priority"
+                    value={formData.priority}
+                    onChange={handleChange}
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                  {getPriorityBadge(formData.priority)}
+                </div>
+              )}
               <div className="form-group">
-                <label htmlFor="priority">Priority</label>
+                <label htmlFor="dueDate">Due Date</label>
+                <input
+                  type="date"
+                  id="dueDate"
+                  name="dueDate"
+                  value={formData.dueDate}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="status">Status</label>
                 <select
-                  id="priority"
-                  name="priority"
-                  value={formData.priority}
+                  id="status"
+                  name="status"
+                  value={formData.status}
                   onChange={handleChange}
                 >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
+                  <option value="not-started">Not Started</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="completed">Completed</option>
                 </select>
               </div>
-            )}
-            <div className="form-group">
-              <label htmlFor="dueDate">Due Date</label>
-              <input
-                type="date"
-                id="dueDate"
-                name="dueDate"
-                value={formData.dueDate}
-                onChange={handleChange}
-              />
             </div>
-          </div>
+            
+            {/* Reminder settings */}
+            <div className="form-group">
+              <div className="reminder-header">
+                <label className="reminder-label">
+                  <input
+                    type="checkbox"
+                    checked={formData.reminderEnabled}
+                    onChange={handleReminderToggle}
+                  />
+                  Set Reminder
+                </label>
+              </div>
+              
+              {formData.reminderEnabled && (
+                <div className="reminder-settings">
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="reminderDate">Reminder Date</label>
+                      <input
+                        type="date"
+                        id="reminderDate"
+                        name="reminderDate"
+                        value={formData.reminderDate}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="reminderTime">Reminder Time</label>
+                      <input
+                        type="time"
+                        id="reminderTime"
+                        name="reminderTime"
+                        value={formData.reminderTime}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="reminder-info">
+                    <i className="fas fa-info-circle"></i>
+                    You will receive a notification at the specified date and time.
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
         )}
 
         {/* Tags input */}
@@ -512,10 +862,10 @@ const WorkspaceItemForm = ({ workspaceId, courseId, onItemAdded }) => {
             />
             <button 
               type="button" 
-              className="btn btn-sm btn-secondary"
+              className="btn-secondary btn-sm"
               onClick={handleTagAdd}
             >
-              Add
+              <i className="fas fa-plus"></i> Add
             </button>
           </div>
           <div className="tags-container">
@@ -535,20 +885,144 @@ const WorkspaceItemForm = ({ workspaceId, courseId, onItemAdded }) => {
         </div>
 
         <div className="form-buttons">
-          <button type="submit" className="btn btn-primary" disabled={loading || isUploading}>
-            {loading ? 'Saving...' : isAddMode ? 'Add Item' : 'Update Item'}
+          <button type="submit" className="btn-primary" disabled={loading || isUploading}>
+            {loading ? (
+              <>
+                <i className="fas fa-spinner fa-spin"></i> Saving...
+              </>
+            ) : (
+              <>
+                <i className={`fas fa-${isAddMode ? 'plus' : 'save'}`}></i>
+                {isAddMode ? 'Add Item' : 'Update Item'}
+              </>
+            )}
           </button>
           {!isInline && (
             <button
               type="button"
               onClick={() => navigate(`/workspaces/${formData.workspace}`)}
-              className="btn btn-secondary"
+              className="btn-secondary"
             >
-              Cancel
+              <i className="fas fa-times"></i> Cancel
             </button>
           )}
         </div>
       </form>
+      <style jsx>{`
+        .checklist-item {
+          transition: all 0.3s ease;
+          transform-origin: left;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px;
+          margin: 5px 0;
+          border-radius: 5px;
+          background-color: #f9f9f9;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .checklist-item.completed {
+          background-color: #e0ffe0;
+        }
+        
+        .checklist-item input[type="checkbox"] {
+          transition: transform 0.2s ease;
+          margin-right: 10px;
+        }
+        
+        .checklist-item input[type="checkbox"].checkbox-pop {
+          transform: scale(1.3);
+        }
+        
+        .checklist-item-content input[type="text"] {
+          transition: all 0.3s ease;
+          flex-grow: 1;
+          border: none;
+          background: transparent;
+          outline: none;
+          font-size: 16px;
+        }
+        
+        .checklist-item-content input[type="text"].completed-text {
+          text-decoration: line-through;
+          color: #999;
+        }
+        
+        .checklist-item-remove {
+          background: none;
+          border: none;
+          color: #ff5252;
+          cursor: pointer;
+          padding: 5px;
+          transition: color 0.2s ease;
+        }
+        
+        .checklist-item-remove:hover {
+          color: #ff0000;
+        }
+        
+        .progress-bar {
+          transition: width 0.5s ease-in-out;
+          background: linear-gradient(90deg, #4CAF50, #8BC34A);
+          border-radius: 4px;
+        }
+        
+        .tag {
+          animation: tagPop 0.3s ease-out;
+          display: inline-block;
+          background-color: #e0e0e0;
+          border-radius: 3px;
+          padding: 5px 10px;
+          margin: 5px;
+          font-size: 14px;
+        }
+        
+        @keyframes tagPop {
+          0% { transform: scale(0.8); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .upload-success {
+          animation: successPop 0.5s ease-out;
+          color: #4CAF50;
+          font-weight: bold;
+        }
+        
+        @keyframes successPop {
+          0% { transform: scale(0.8); opacity: 0; }
+          50% { transform: scale(1.1); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .btn-primary {
+          background-color: #007bff;
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 5px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+          background-color: #0056b3;
+        }
+        
+        .btn-secondary {
+          background-color: #6c757d;
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 5px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+          background-color: #5a6268;
+        }
+      `}</style>
     </div>
   );
 };

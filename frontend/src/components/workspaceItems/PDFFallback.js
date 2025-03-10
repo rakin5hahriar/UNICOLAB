@@ -1,38 +1,32 @@
 import React from 'react';
 
-const PDFFallback = ({ fileUrl, fileName }) => {
+const PDFFallback = ({ url }) => {
   return (
-    <div className="pdf-fallback">
-      <div className="pdf-fallback-message">
-        <i className="fas fa-exclamation-triangle"></i>
-        <h4>PDF Viewer Unavailable</h4>
-        <p>
-          We're having trouble displaying this PDF in the browser. This could be due to:
-        </p>
-        <ul>
-          <li>Browser restrictions</li>
-          <li>CORS policy issues</li>
-          <li>Network connectivity problems</li>
-        </ul>
-        <p>You can still access the PDF using one of these options:</p>
+    <div className="pdf-fallback p-6 bg-gray-50 rounded border text-center">
+      <div className="mb-4">
+        <i className="fas fa-file-pdf text-red-500 text-4xl"></i>
       </div>
-      <div className="pdf-fallback-actions">
-        <a 
-          href={fileUrl} 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="btn btn-primary"
-          download={fileName || "document.pdf"}
+      <h3 className="text-lg font-semibold mb-2">PDF Viewer Unavailable</h3>
+      <p className="text-gray-600 mb-4">
+        We're unable to display the PDF in the browser. Please use one of the options below:
+      </p>
+      <div className="flex justify-center gap-4">
+        <a
+          href={url}
+          download
+          className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
         >
-          <i className="fas fa-download"></i> Download PDF
+          <i className="fas fa-download mr-2"></i>
+          Download PDF
         </a>
-        <a 
-          href={fileUrl} 
-          target="_blank" 
-          rel="noopener noreferrer" 
-          className="btn btn-secondary"
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
         >
-          <i className="fas fa-external-link-alt"></i> Open in New Tab
+          <i className="fas fa-external-link-alt mr-2"></i>
+          Open in New Tab
         </a>
       </div>
     </div>

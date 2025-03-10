@@ -1,115 +1,151 @@
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
-// @desc    Get all users
-// @route   GET /api/users
-// @access  Private
-const getUsers = async (req, res) => {
-  try {
-    const users = await User.find({}).select('-password');
-    res.status(200).json(users);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+// Generate JWT
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRE,
+  });
 };
 
-// @desc    Get user by ID
-// @route   GET /api/users/:id
-// @access  Private
-const getUserById = async (req, res) => {
+// @desc    Register a new user
+// @route   POST /api/users/register
+// @access  Public
+const registerUser = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-password');
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    
-    // Check if user is authorized to view this user (admin or self)
-    if (req.user.role !== 'admin' && req.user.id !== req.params.id) {
-      return res.status(403).json({ message: 'Not authorized to access this user' });
-    }
-    
-    res.status(200).json(user);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+    const { name, email, password } = req.body;
 
-// @desc    Create a new user
-// @route   POST /api/users
-// @access  Private/Admin
-const createUser = async (req, res) => {
-  try {
-    const { name, email, password, role } = req.body;
-    
-    // Check if user already exists
+    // Check if user exists
     const userExists = await User.findOne({ email });
-    
+
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+      res.status(400);
+      throw new Error('User already exists');
     }
-    
-    // Only admin can set role
-    const userData = {
+
+    // Create user
+    const user = await User.create({
       name,
       email,
       password,
-    };
-    
-    if (req.user.role === 'admin' && role) {
-      userData.role = role;
-    }
-    
-    const user = await User.create(userData);
-    
+    });
+
     if (user) {
       res.status(201).json({
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        isAdmin: user.isAdmin,
+        token: generateToken(user._id),
       });
     } else {
-      res.status(400).json({ message: 'Invalid user data' });
+      res.status(400);
+      throw new Error('Invalid user data');
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 
-// @desc    Update user
-// @route   PUT /api/users/:id
-// @access  Private
-const updateUser = async (req, res) => {
+// @desc    Auth user & get token
+// @route   POST /api/users/login
+// @access  Public
+const loginUser = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    
+    const { email, password } = req.body;
+
+    // Check for user email
+    const user = await User.findOne({ email }).select('+password');
+
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(401);
+      throw new Error('Invalid credentials');
     }
-    
-    // Check if user is authorized to update this user (admin or self)
-    if (req.user.role !== 'admin' && req.user.id !== req.params.id) {
-      return res.status(403).json({ message: 'Not authorized to update this user' });
+
+    // Check if password matches
+    const isMatch = await user.matchPassword(password);
+
+    if (!isMatch) {
+      res.status(401);
+      throw new Error('Invalid credentials');
     }
-    
-    const { name, email, role } = req.body;
-    
-    user.name = name || user.name;
-    user.email = email || user.email;
-    
-    // Only admin can update role
-    if (req.user.role === 'admin' && role) {
-      user.role = role;
-    }
-    
-    const updatedUser = await user.save();
-    
-    res.status(200).json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      role: updatedUser.role,
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      token: generateToken(user._id),
     });
+  } catch (error) {
+    res.status(401).json({ message: error.message });
+  }
+};
+
+// @desc    Get user profile
+// @route   GET /api/users/profile
+// @access  Private
+const getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+      res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin,
+      });
+    } else {
+      res.status(404);
+      throw new Error('User not found');
+    }
+  } catch (error) {
+    res.status(404).json({ message: error.message });
+  }
+};
+
+// @desc    Update user profile
+// @route   PUT /api/users/profile
+// @access  Private
+const updateUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+      user.name = req.body.name || user.name;
+      user.email = req.body.email || user.email;
+
+      if (req.body.password) {
+        user.password = req.body.password;
+      }
+
+      const updatedUser = await user.save();
+
+      res.json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        isAdmin: updatedUser.isAdmin,
+        token: generateToken(updatedUser._id),
+      });
+    } else {
+      res.status(404);
+      throw new Error('User not found');
+    }
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Get all users
+// @route   GET /api/users
+// @access  Private/Admin
+const getUsers = async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -121,23 +157,73 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+
+    if (user) {
+      await user.deleteOne();
+      res.json({ message: 'User removed' });
+    } else {
+      res.status(404);
+      throw new Error('User not found');
     }
-    
-    await user.deleteOne();
-    
-    res.status(200).json({ message: 'User removed' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(404).json({ message: error.message });
+  }
+};
+
+// @desc    Get user by ID
+// @route   GET /api/users/:id
+// @access  Private/Admin
+const getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+
+    if (user) {
+      res.json(user);
+    } else {
+      res.status(404);
+      throw new Error('User not found');
+    }
+  } catch (error) {
+    res.status(404).json({ message: error.message });
+  }
+};
+
+// @desc    Update user
+// @route   PUT /api/users/:id
+// @access  Private/Admin
+const updateUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (user) {
+      user.name = req.body.name || user.name;
+      user.email = req.body.email || user.email;
+      user.isAdmin = req.body.isAdmin !== undefined ? req.body.isAdmin : user.isAdmin;
+
+      const updatedUser = await user.save();
+
+      res.json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        isAdmin: updatedUser.isAdmin,
+      });
+    } else {
+      res.status(404);
+      throw new Error('User not found');
+    }
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 };
 
 module.exports = {
+  registerUser,
+  loginUser,
+  getUserProfile,
+  updateUserProfile,
   getUsers,
-  getUserById,
-  createUser,
-  updateUser,
   deleteUser,
+  getUserById,
+  updateUser,
 }; 

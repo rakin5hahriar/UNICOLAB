@@ -1,156 +1,145 @@
 import React, { createContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load user from localStorage on initial render
+  // Set up axios defaults
   useEffect(() => {
-    const loadUser = async () => {
-      if (token) {
-        try {
-          // Set user from localStorage if available
-          const storedUser = localStorage.getItem('user');
-          if (storedUser) {
-            setUser(JSON.parse(storedUser));
-            setIsAuthenticated(true);
-          }
-        } catch (err) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setToken(null);
-          setUser(null);
-          setIsAuthenticated(false);
-          setError('Authentication error. Please login again.');
-        }
+    // Set default headers
+    axios.defaults.headers.post['Content-Type'] = 'application/json';
+    
+    // Set up response interceptor to handle errors
+    axios.interceptors.response.use(
+      response => response,
+      error => {
+        console.error('API Error:', error);
+        return Promise.reject(error);
       }
-      setLoading(false);
+    );
+  }, []);
+
+  // Check if user is logged in on initial load
+  useEffect(() => {
+    const checkLoggedIn = async () => {
+      try {
+        // Check if token exists in localStorage
+        const token = localStorage.getItem('token');
+        
+        if (token) {
+          // Set auth token header
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          
+          // Get user data
+          const res = await axios.get('/api/users/profile');
+          
+          setUser(res.data);
+        }
+      } catch (err) {
+        // Clear token if invalid
+        localStorage.removeItem('token');
+        delete axios.defaults.headers.common['Authorization'];
+        console.error('Auth check error:', err);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    loadUser();
-  }, [token]);
-
-  // Register user
-  const register = async (userData) => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
-      }
-
-      // Save to localStorage
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      // Update state
-      setToken(data.token);
-      setUser(data.user);
-      setIsAuthenticated(true);
-      setLoading(false);
-      setError(null);
-
-      return data;
-    } catch (err) {
-      setLoading(false);
-      setError(err.message);
-      throw err;
-    }
-  };
+    checkLoggedIn();
+  }, []);
 
   // Login user
   const login = async (email, password) => {
     try {
       setLoading(true);
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
-
-      // Save to localStorage
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      // Update state
-      setToken(data.token);
-      setUser(data.user);
-      setIsAuthenticated(true);
-      setLoading(false);
       setError(null);
-
-      return data;
+      
+      // Make sure we're not sending the auth header for login
+      delete axios.defaults.headers.common['Authorization'];
+      
+      const res = await axios.post('/api/users/login', { 
+        email, 
+        password 
+      });
+      
+      // Save token to localStorage
+      localStorage.setItem('token', res.data.token);
+      
+      // Set auth token header
+      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+      
+      // Set user data
+      setUser(res.data);
+      
+      return true;
     } catch (err) {
-      setLoading(false);
-      setError(err.message);
+      console.error('Login error:', err);
+      setError(err.response?.data?.message || 'Login failed');
       throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Register user
+  const register = async (name, email, password) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Make sure we're not sending the auth header for register
+      delete axios.defaults.headers.common['Authorization'];
+      
+      const res = await axios.post('/api/users/register', {
+        name,
+        email,
+        password
+      });
+      
+      // Save token to localStorage
+      localStorage.setItem('token', res.data.token);
+      
+      // Set auth token header
+      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+      
+      // Set user data
+      setUser(res.data);
+      
+      return true;
+    } catch (err) {
+      console.error('Registration error:', err);
+      setError(err.response?.data?.message || 'Registration failed');
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
   // Logout user
-  const logout = async () => {
-    try {
-      // Call logout API
-      if (token) {
-        await fetch('/api/auth/logout', {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-      }
-    } catch (err) {
-      console.error('Logout error:', err.message);
-    } finally {
-      // Clear localStorage and state regardless of API response
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      setToken(null);
-      setUser(null);
-      setIsAuthenticated(false);
-      setError(null);
-    }
-  };
-
-  // Check if user is admin
-  const isAdmin = () => {
-    return user && user.role === 'admin';
+  const logout = () => {
+    // Remove token from localStorage
+    localStorage.removeItem('token');
+    
+    // Remove auth header
+    delete axios.defaults.headers.common['Authorization'];
+    
+    // Clear user data
+    setUser(null);
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        token,
-        isAuthenticated,
         loading,
         error,
-        register,
         login,
-        logout,
-        isAdmin,
+        register,
+        logout
       }}
     >
       {children}

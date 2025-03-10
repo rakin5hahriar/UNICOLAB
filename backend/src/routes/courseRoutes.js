@@ -1,22 +1,23 @@
 const express = require('express');
+const router = express.Router();
+const { protect } = require('../middleware/authMiddleware');
 const {
   getCourses,
   getCourse,
   createCourse,
   updateCourse,
-  deleteCourse,
+  deleteCourse
 } = require('../controllers/courseController');
-const { protect } = require('../middleware/authMiddleware');
 
-const router = express.Router();
+// Get all courses and create a new course
+router.route('/')
+  .get(protect, getCourses)
+  .post(protect, createCourse);
 
-// Protect all routes
-router.use(protect);
-
-// Routes for /api/courses
-router.route('/').get(getCourses).post(createCourse);
-
-// Routes for /api/courses/:id
-router.route('/:id').get(getCourse).put(updateCourse).delete(deleteCourse);
+// Get, update, and delete a course by ID
+router.route('/:id')
+  .get(protect, getCourse)
+  .put(protect, updateCourse)
+  .delete(protect, deleteCourse);
 
 module.exports = router; 

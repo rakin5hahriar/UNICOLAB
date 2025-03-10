@@ -75,6 +75,41 @@ const workspaceItemSchema = new mongoose.Schema(
       type: String,
       trim: true
     }],
+    // Checklist items for notes and assignments
+    checklistItems: [{
+      text: {
+        type: String,
+        required: true,
+        trim: true
+      },
+      completed: {
+        type: Boolean,
+        default: false
+      }
+    }],
+    // Assignment status tracking
+    status: {
+      type: String,
+      enum: ['not-started', 'in-progress', 'completed'],
+      default: 'not-started'
+    },
+    completionPercentage: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0
+    },
+    // Reminder settings
+    reminderEnabled: {
+      type: Boolean,
+      default: false
+    },
+    reminderDate: {
+      type: Date
+    },
+    reminderTime: {
+      type: String
+    }
   },
   {
     timestamps: true,

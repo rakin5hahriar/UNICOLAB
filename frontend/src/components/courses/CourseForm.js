@@ -17,6 +17,7 @@ const CourseForm = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [validation, setValidation] = useState({});
 
   useEffect(() => {
     if (!isAddMode) {
@@ -43,16 +44,47 @@ const CourseForm = () => {
     }
   }, [id, isAddMode]);
 
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.title.trim()) {
+      errors.title = 'Course title is required';
+    }
+    
+    if (formData.code && formData.code.length > 10) {
+      errors.code = 'Course code should be 10 characters or less';
+    }
+    
+    if (formData.year && (formData.year < 2000 || formData.year > 2100)) {
+      errors.year = 'Year must be between 2000 and 2100';
+    }
+    
+    setValidation(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
     });
+    
+    // Clear validation error when field is edited
+    if (validation[name]) {
+      setValidation({
+        ...validation,
+        [name]: null
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     try {
       setLoading(true);
       if (isAddMode) {
@@ -68,24 +100,31 @@ const CourseForm = () => {
     }
   };
 
-  if (loading && !isAddMode) return <div className="loading">Loading course...</div>;
+  if (loading && !isAddMode) return (
+    <div className="course-form-container">
+      <div className="loading">
+        <i className="fas fa-spinner fa-spin"></i> Loading course...
+      </div>
+    </div>
+  );
 
   return (
-    <div className="course-form">
+    <div className="course-form-container">
       <h2>{isAddMode ? 'Add New Course' : 'Edit Course'}</h2>
       {error && <div className="error">{error}</div>}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="course-form">
         <div className="form-group">
-          <label htmlFor="title">Course Title*</label>
+          <label htmlFor="title" className="required">Course Title</label>
           <input
             type="text"
             id="title"
             name="title"
             value={formData.title}
             onChange={handleChange}
-            required
+            className={validation.title ? 'error' : ''}
             placeholder="e.g., Introduction to Computer Science"
           />
+          {validation.title && <div className="error-message">{validation.title}</div>}
         </div>
         <div className="form-group">
           <label htmlFor="code">Course Code</label>
@@ -95,8 +134,10 @@ const CourseForm = () => {
             name="code"
             value={formData.code}
             onChange={handleChange}
+            className={validation.code ? 'error' : ''}
             placeholder="e.g., CS101"
           />
+          {validation.code && <div className="error-message">{validation.code}</div>}
         </div>
         <div className="form-group">
           <label htmlFor="description">Description</label>
@@ -120,7 +161,7 @@ const CourseForm = () => {
             placeholder="e.g., Prof. John Smith"
           />
         </div>
-        <div className="form-row">
+        <div className="course-form-row">
           <div className="form-group">
             <label htmlFor="semester">Semester</label>
             <select
@@ -146,17 +187,25 @@ const CourseForm = () => {
               onChange={handleChange}
               min="2000"
               max="2100"
+              className={validation.year ? 'error' : ''}
             />
+            {validation.year && <div className="error-message">{validation.year}</div>}
           </div>
         </div>
-        <div className="form-buttons">
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Saving...' : isAddMode ? 'Add Course' : 'Update Course'}
+        <div className="course-form-buttons">
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? (
+              <>
+                <i className="fas fa-spinner fa-spin"></i> Saving...
+              </>
+            ) : (
+              isAddMode ? 'Add Course' : 'Update Course'
+            )}
           </button>
           <button
             type="button"
             onClick={() => navigate('/courses')}
-            className="btn btn-secondary"
+            className="btn-secondary"
           >
             Cancel
           </button>

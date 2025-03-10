@@ -1,4 +1,5 @@
 const Course = require('../models/Course');
+const mongoose = require('mongoose');
 
 // @desc    Get all courses for the logged-in user
 // @route   GET /api/courses
@@ -17,6 +18,11 @@ const getCourses = async (req, res) => {
 // @access  Private
 const getCourse = async (req, res) => {
   try {
+    // Validate if the id is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid course ID format' });
+    }
+
     const course = await Course.findById(req.params.id);
 
     if (!course) {
@@ -62,6 +68,11 @@ const createCourse = async (req, res) => {
 // @access  Private
 const updateCourse = async (req, res) => {
   try {
+    // Validate if the id is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid course ID format' });
+    }
+
     const { title, code, description, instructor, semester, year } = req.body;
 
     const course = await Course.findById(req.params.id);
@@ -95,6 +106,11 @@ const updateCourse = async (req, res) => {
 // @access  Private
 const deleteCourse = async (req, res) => {
   try {
+    // Validate if the id is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid course ID format' });
+    }
+
     const course = await Course.findById(req.params.id);
 
     if (!course) {

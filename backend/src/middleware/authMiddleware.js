@@ -1,50 +1,54 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Protect routes
+/**
+ * Middleware to protect routes
+ * Verifies JWT token and adds user to request object
+ */
 const protect = async (req, res, next) => {
   let token;
 
-  // Check if token exists in headers
+  // Check if token exists in Authorization header
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
-    // Set token from Bearer token in header
-    token = req.headers.authorization.split(' ')[1];
-  }
+    try {
+      // Get token from header
+      token = req.headers.authorization.split(' ')[1];
 
-  // Make sure token exists
-  if (!token) {
-    return res.status(401).json({ message: 'Not authorized to access this route' });
-  }
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-  try {
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      // Get user from the token (exclude password)
+      req.user = await User.findById(decoded.id).select('-password');
 
-    // Set user to req.user
-    req.user = await User.findById(decoded.id);
-
-    next();
-  } catch (error) {
-    return res.status(401).json({ message: 'Not authorized to access this route' });
-  }
-};
-
-// Grant access to specific roles
-const authorize = (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
-        message: `User role ${req.user.role} is not authorized to access this route`,
-      });
+      next();
+    } catch (error) {
+      console.error('Authentication error:', error);
+      res.status(401);
+      throw new Error('Not authorized, token failed');
     }
-    next();
-  };
+  }
+
+  // If no token
+  if (!token) {
+    res.status(401);
+    throw new Error('Not authorized, no token');
+  }
 };
 
-module.exports = {
-  protect,
-  authorize,
-}; 
+/**
+ * Middleware to check if user is admin
+ * Must be used after protect middleware
+ */
+const admin = (req, res, next) => {
+  if (req.user && req.user.isAdmin) {
+    next();
+  } else {
+    res.status(403);
+    throw new Error('Not authorized as an admin');
+  }
+};
+
+module.exports = { protect, admin }; 
