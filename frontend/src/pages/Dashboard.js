@@ -6,13 +6,10 @@ import { getWorkspaces } from '../api/workspaceApi';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const [courses, setCourses] = useState([]);
-  const [workspaces, setWorkspaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useContext(AuthContext);
   const [stats, setStats] = useState({
     totalCourses: 0,
-    totalWorkspaces: 0,
     completedItems: 0,
     pendingItems: 0
   });
@@ -24,9 +21,6 @@ const Dashboard = () => {
         const coursesData = await getCourses();
         const workspacesData = await getWorkspaces();
         
-        setCourses(coursesData);
-        setWorkspaces(workspacesData);
-        
         // Calculate stats
         const completedItems = workspacesData.reduce((acc, workspace) => 
           acc + (workspace.items?.filter(item => item.status === 'completed').length || 0), 0);
@@ -35,7 +29,6 @@ const Dashboard = () => {
         
         setStats({
           totalCourses: coursesData.length,
-          totalWorkspaces: workspacesData.length,
           completedItems,
           pendingItems
         });
@@ -49,11 +42,46 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
+  const features = [
+    {
+      title: "Courses",
+      icon: "fas fa-graduation-cap",
+      description: "Manage your courses, access workspaces, and track course materials",
+      link: "/courses",
+      stats: `${stats.totalCourses} Courses`,
+      color: "#4f46e5"
+    },
+    {
+      title: "Collaboration",
+      icon: "fas fa-users",
+      description: "Join real-time collaboration sessions, chat with peers, and work together",
+      link: "/collaboration",
+      stats: "Live Sessions",
+      color: "#0891b2"
+    },
+    {
+      title: "Tasks",
+      icon: "fas fa-tasks",
+      description: "View and manage your assignments, deadlines, and to-dos",
+      link: "/tasks",
+      stats: `${stats.pendingItems} Pending`,
+      color: "#db2777"
+    },
+    {
+      title: "Progress",
+      icon: "fas fa-chart-line",
+      description: "Track your learning progress and completed items",
+      link: "/progress",
+      stats: `${stats.completedItems} Completed`,
+      color: "#059669"
+    }
+  ];
+
   return (
     <div className="dashboard">
       <div className="welcome-message">
         <h2>Welcome back, {user?.name || 'Student'}!</h2>
-        <p>Here's an overview of your courses and workspaces.</p>
+        <p>What would you like to do today?</p>
       </div>
 
       {loading ? (
@@ -63,121 +91,52 @@ const Dashboard = () => {
         </div>
       ) : (
         <div className="dashboard-content">
-          {/* Stats Section */}
-          <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-icon">
-                <i className="fas fa-book"></i>
-              </div>
-              <h4>{stats.totalCourses}</h4>
-              <p>Total Courses</p>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">
-                <i className="fas fa-folder"></i>
-              </div>
-              <h4>{stats.totalWorkspaces}</h4>
-              <p>Workspaces</p>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">
-                <i className="fas fa-check-circle"></i>
-              </div>
-              <h4>{stats.completedItems}</h4>
-              <p>Completed Items</p>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">
-                <i className="fas fa-clock"></i>
-              </div>
-              <h4>{stats.pendingItems}</h4>
-              <p>Pending Items</p>
-            </div>
+          <div className="features-grid">
+            {features.map((feature, index) => (
+              <Link 
+                to={feature.link} 
+                key={index}
+                className="feature-card"
+                style={{ '--card-color': feature.color }}
+              >
+                <div className="feature-card-header">
+                  <i className={feature.icon}></i>
+                  <h3>{feature.title}</h3>
+                </div>
+                <p>{feature.description}</p>
+                <div className="feature-card-footer">
+                  <span className="feature-stats">
+                    <i className="fas fa-chart-bar"></i>
+                    {feature.stats}
+                  </span>
+                  <span className="feature-action">
+                    View <i className="fas fa-arrow-right"></i>
+                  </span>
+                </div>
+              </Link>
+            ))}
           </div>
 
-          {/* Courses Section */}
-          <div className="dashboard-section">
-            <div className="section-header">
-              <h3>
-                <i className="fas fa-graduation-cap"></i>
-                Your Courses
-              </h3>
-              <Link to="/courses/new" className="btn-primary">
-                <i className="fas fa-plus"></i> Add Course
+          <div className="quick-actions">
+            <h3>Quick Actions</h3>
+            <div className="quick-actions-grid">
+              <Link to="/courses/new" className="quick-action-btn">
+                <i className="fas fa-plus"></i>
+                New Course
+              </Link>
+              <Link to="/tasks/new" className="quick-action-btn">
+                <i className="fas fa-clipboard-list"></i>
+                New Task
+              </Link>
+              <Link to="/collaboration/join" className="quick-action-btn">
+                <i className="fas fa-user-plus"></i>
+                Join Session
+              </Link>
+              <Link to="/calendar" className="quick-action-btn">
+                <i className="fas fa-calendar"></i>
+                View Calendar
               </Link>
             </div>
-            {courses.length > 0 ? (
-              <div className="course-grid">
-                {courses.map((course) => (
-                  <div key={course._id} className="course-card">
-                    <div className="course-card-header">
-                      <i className="fas fa-book"></i>
-                      <h4>{course.name}</h4>
-                    </div>
-                    <p>{course.description}</p>
-                    <div className="course-card-footer">
-                      <span className="course-code">{course.code}</span>
-                      <Link to={`/courses/${course._id}`} className="btn-secondary">
-                        <i className="fas fa-arrow-right"></i> View Course
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="empty-state">
-                <i className="fas fa-books"></i>
-                <p>You haven't added any courses yet.</p>
-                <Link to="/courses/new" className="btn-primary">
-                  <i className="fas fa-plus"></i> Add Your First Course
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Workspaces Section */}
-          <div className="dashboard-section">
-            <div className="section-header">
-              <h3>
-                <i className="fas fa-folder-open"></i>
-                Recent Workspaces
-              </h3>
-              <Link to="/workspaces/new" className="btn-primary">
-                <i className="fas fa-plus"></i> Create Workspace
-              </Link>
-            </div>
-            {workspaces.length > 0 ? (
-              <div className="workspace-grid">
-                {workspaces.slice(0, 4).map((workspace) => (
-                  <div key={workspace._id} className="workspace-card">
-                    <div className="workspace-card-header" style={{ backgroundColor: workspace.color || '#3b82f6' }}>
-                      <i className={`fas fa-${workspace.icon || 'folder'}`}></i>
-                    </div>
-                    <div className="workspace-card-content">
-                      <h4>{workspace.name}</h4>
-                      <p>{workspace.description}</p>
-                      <div className="workspace-card-footer">
-                        <span className="workspace-items-count">
-                          <i className="fas fa-layer-group"></i>
-                          {workspace.items?.length || 0} items
-                        </span>
-                        <Link to={`/workspaces/${workspace._id}`} className="btn-secondary">
-                          <i className="fas fa-arrow-right"></i> Open
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="empty-state">
-                <i className="fas fa-folder-plus"></i>
-                <p>You haven't created any workspaces yet.</p>
-                <Link to="/workspaces/new" className="btn-primary">
-                  <i className="fas fa-plus"></i> Create Your First Workspace
-                </Link>
-              </div>
-            )}
           </div>
         </div>
       )}

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getCourseById, deleteCourse } from '../../api/courseApi';
-import { getWorkspacesByCourse } from '../../api/workspaceApi';
 import WorkspaceList from '../workspaces/WorkspaceList';
 import { toast } from 'react-toastify';
 

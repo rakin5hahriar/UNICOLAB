@@ -36,7 +36,9 @@ export const logApiStatus = () => {
     });
 };
 
-export default {
+const apiCheck = {
   checkApiConnection,
   logApiStatus
-}; 
+};
+
+export default apiCheck; 

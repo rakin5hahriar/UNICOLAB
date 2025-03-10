@@ -1,0 +1,353 @@
+.collaboration-page {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.collaboration-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.collaboration-header h1 {
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.collaboration-header p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.collaboration-content {
+  display: grid;
+  gap: 2rem;
+}
+
+.collaboration-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.join-session,
+.create-session {
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.join-session h2,
+.create-session h2 {
+  font-size: 1.5rem;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.create-session p {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.join-form {
+  display: flex;
+  gap: 1rem;
+}
+
+.join-input,
+.session-name-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.join-input:focus,
+.session-name-input:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+.session-name-input {
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+.join-button,
+.create-button,
+.leave-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.join-button {
+  background-color: #4f46e5;
+  color: white;
+}
+
+.join-button:hover {
+  background-color: #4338ca;
+}
+
+.create-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 1rem;
+}
+
+.create-button:hover {
+  background-color: #45a049;
+}
+
+.leave-button {
+  background-color: #dc2626;
+  color: white;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.leave-button:hover {
+  background-color: #b91c1c;
+}
+
+.active-session-container {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 2rem;
+  min-height: 600px;
+}
+
+.session-info {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.session-info h2 {
+  font-size: 1.5rem;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.participant-list {
+  margin-bottom: 1.5rem;
+}
+
+.participant-list h3 {
+  font-size: 1.1rem;
+  color: #4b5563;
+  margin-bottom: 1rem;
+}
+
+.participant-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.participant-list li {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  font-size: 0.95rem;
+}
+
+.collaboration-workspace {
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.workspace-placeholder {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #6b7280;
+}
+
+.workspace-placeholder h3 {
+  font-size: 1.5rem;
+  color: #4b5563;
+  margin-bottom: 1rem;
+}
+
+.workspace-placeholder p {
+  color: #6b7280;
+  font-size: 1.1rem;
+}
+
+.documents-list {
+  margin-top: 2rem;
+}
+
+.documents-list h2 {
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.document-item {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.document-info h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.document-info p {
+  margin: 0.5rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.document-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.edit-button, .share-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s;
+}
+
+.edit-button {
+  background-color: #2196F3;
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: #1976D2;
+}
+
+.share-button {
+  background-color: #FF9800;
+  color: white;
+}
+
+.share-button:hover {
+  background-color: #F57C00;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.modal-content h2 {
+  margin: 0 0 1.5rem 0;
+  color: #333;
+}
+
+.modal-content input,
+.modal-content select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.modal-actions button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.modal-actions button:first-child {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.modal-actions button:last-child {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.modal-actions button:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .collaboration-page {
+    padding: 1rem;
+  }
+
+  .active-session-container {
+    grid-template-columns: 1fr;
+  }
+
+  .join-form {
+    flex-direction: column;
+  }
+
+  .join-button {
+    width: 100%;
+  }
+} 

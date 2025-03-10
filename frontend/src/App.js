@@ -10,6 +10,7 @@ import { logApiStatus, checkApiConnection } from './utils/apiCheck';
 // Auth Context
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { CollaborationProvider } from './contexts/CollaborationContext';
 
 // Layout Components
 import Header from './components/layout/Header';
@@ -21,7 +22,6 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import WorkspaceDetail from './pages/WorkspaceDetail';
-import WorkspaceForm from './pages/WorkspaceForm';
 import WorkspaceFormPage from './pages/WorkspaceFormPage';
 
 // Course Workspace Pages
@@ -30,10 +30,10 @@ import CourseFormPage from './pages/CourseFormPage';
 import CourseDetailPage from './pages/CourseDetailPage';
 
 // Components
-import WorkspaceItemForm from './components/workspaceItems/WorkspaceItemForm';
 import PrivateRoute from './components/routing/PrivateRoute';
 import WorkspaceItemFormPage from './pages/WorkspaceItemFormPage';
 import WorkspaceItemDetailPage from './pages/WorkspaceItemDetailPage';
+import CollaborationPage from './pages/CollaborationPage';
 
 function App() {
   useEffect(() => {
@@ -53,101 +53,115 @@ function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <Router>
-          <div className="App">
-            <Header />
-            <main className="container">
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                
-                {/* Protected Routes - Require Authentication */}
-                <Route path="/dashboard" element={
-                  <PrivateRoute>
-                    <Dashboard />
-                  </PrivateRoute>
-                } />
-                
-                {/* Course Routes */}
-                <Route path="/courses" element={
-                  <PrivateRoute>
-                    <CoursesPage />
-                  </PrivateRoute>
-                } />
-                <Route path="/courses/new" element={
-                  <PrivateRoute>
-                    <CourseFormPage />
-                  </PrivateRoute>
-                } />
-                <Route path="/courses/edit/:id" element={
-                  <PrivateRoute>
-                    <CourseFormPage />
-                  </PrivateRoute>
-                } />
-                <Route path="/courses/:id" element={
-                  <PrivateRoute>
-                    <CourseDetailPage />
-                  </PrivateRoute>
-                } />
-                
-                {/* Course Workspace Routes */}
-                <Route path="/courses/:courseId/workspaces/add" element={
-                  <PrivateRoute>
-                    <WorkspaceFormPage />
-                  </PrivateRoute>
-                } />
-                
-                {/* Workspace Routes */}
-                <Route path="/workspaces/:id" element={
-                  <PrivateRoute>
-                    <WorkspaceDetail />
-                  </PrivateRoute>
-                } />
-                <Route path="/workspaces/new" element={
-                  <PrivateRoute>
-                    <WorkspaceFormPage />
-                  </PrivateRoute>
-                } />
-                <Route path="/workspaces/edit/:id" element={
-                  <PrivateRoute>
-                    <WorkspaceFormPage />
-                  </PrivateRoute>
-                } />
-                
-                {/* Workspace Item Routes */}
-                <Route path="/workspace-items/new/:workspaceId" element={
-                  <PrivateRoute>
-                    <WorkspaceItemFormPage />
-                  </PrivateRoute>
-                } />
-                <Route path="/workspace-items/edit/:id" element={
-                  <PrivateRoute>
-                    <WorkspaceItemFormPage />
-                  </PrivateRoute>
-                } />
-                <Route path="/workspace-items/:id" element={
-                  <PrivateRoute>
-                    <WorkspaceItemDetailPage />
-                  </PrivateRoute>
-                } />
-              </Routes>
-            </main>
-            <Footer />
-            <ToastContainer
-              position="top-right"
-              autoClose={5000}
-              hideProgressBar={false}
-              newestOnTop
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-            />
-          </div>
-        </Router>
+        <CollaborationProvider>
+          <Router>
+            <div className="App">
+              <Header />
+              <main className="container">
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/" element={<Home />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  
+                  {/* Protected Routes - Require Authentication */}
+                  <Route path="/dashboard" element={
+                    <PrivateRoute>
+                      <Dashboard />
+                    </PrivateRoute>
+                  } />
+                  
+                  {/* Collaboration Routes */}
+                  <Route path="/collaboration" element={
+                    <PrivateRoute>
+                      <CollaborationPage />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/collaboration/join/:sessionId" element={
+                    <PrivateRoute>
+                      <CollaborationPage />
+                    </PrivateRoute>
+                  } />
+                  
+                  {/* Course Routes */}
+                  <Route path="/courses" element={
+                    <PrivateRoute>
+                      <CoursesPage />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/courses/new" element={
+                    <PrivateRoute>
+                      <CourseFormPage />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/courses/edit/:id" element={
+                    <PrivateRoute>
+                      <CourseFormPage />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/courses/:id" element={
+                    <PrivateRoute>
+                      <CourseDetailPage />
+                    </PrivateRoute>
+                  } />
+                  
+                  {/* Course Workspace Routes */}
+                  <Route path="/courses/:courseId/workspaces/add" element={
+                    <PrivateRoute>
+                      <WorkspaceFormPage />
+                    </PrivateRoute>
+                  } />
+                  
+                  {/* Workspace Routes */}
+                  <Route path="/workspaces/:id" element={
+                    <PrivateRoute>
+                      <WorkspaceDetail />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/workspaces/new" element={
+                    <PrivateRoute>
+                      <WorkspaceFormPage />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/workspaces/edit/:id" element={
+                    <PrivateRoute>
+                      <WorkspaceFormPage />
+                    </PrivateRoute>
+                  } />
+                  
+                  {/* Workspace Item Routes */}
+                  <Route path="/workspace-items/new/:workspaceId" element={
+                    <PrivateRoute>
+                      <WorkspaceItemFormPage />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/workspace-items/edit/:id" element={
+                    <PrivateRoute>
+                      <WorkspaceItemFormPage />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/workspace-items/:id" element={
+                    <PrivateRoute>
+                      <WorkspaceItemDetailPage />
+                    </PrivateRoute>
+                  } />
+                </Routes>
+              </main>
+              <Footer />
+              <ToastContainer
+                position="top-right"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+              />
+            </div>
+          </Router>
+        </CollaborationProvider>
       </NotificationProvider>
     </AuthProvider>
   );

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getWorkspaceItemById, deleteWorkspaceItem, updateWorkspaceItem } from '../../api/workspaceApi';
-import PDFFallback from './PDFFallback';
 
 const WorkspaceItemDetail = () => {
   const { id } = useParams();
@@ -64,19 +63,6 @@ const WorkspaceItemDetail = () => {
       } catch (err) {
         setError(err.message || 'Failed to delete item');
       }
-    }
-  };
-
-  const handleToggleComplete = async () => {
-    try {
-      const updatedItem = await updateWorkspaceItem(id, {
-        ...item,
-        completed: !item.completed,
-        status: !item.completed ? 'completed' : 'in-progress'
-      });
-      setItem(updatedItem);
-    } catch (err) {
-      setError(err.message || 'Failed to update item');
     }
   };
 
@@ -154,12 +140,6 @@ const WorkspaceItemDetail = () => {
       default:
         return 'fas fa-file';
     }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
   };
 
   const formatDateTime = (dateString, timeString) => {

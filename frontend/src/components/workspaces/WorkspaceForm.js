@@ -144,27 +144,6 @@ const WorkspaceForm = ({ courseId }) => {
     }));
   };
 
-  const toggleCourseCreation = () => {
-    setIsCreatingNewCourse(!isCreatingNewCourse);
-    if (isCreatingNewCourse) {
-      // Switching back to selecting existing course
-      setNewCourseData({
-        title: '',
-        code: '',
-        description: '',
-        instructor: '',
-        semester: '',
-        year: new Date().getFullYear()
-      });
-    } else {
-      // Switching to creating new course
-      setFormData(prev => ({
-        ...prev,
-        course: ''
-      }));
-    }
-  };
-
   if (loading && !formData.name) {
     return (
       <div className="loading-container">

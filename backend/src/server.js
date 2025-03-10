@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
 const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -13,12 +14,14 @@ const workspaceItemRoutes = require('./routes/workspaceItemRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 const { scheduleJobs } = require('./utils/notificationScheduler');
+const CollaborationService = require('./services/collaborationService');
 
 // Load environment variables
 dotenv.config();
 
 // Create Express app
 const app = express();
+const server = http.createServer(app);
 
 // Middleware
 app.use(cors());
@@ -99,6 +102,9 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Initialize collaboration service
+const collaborationService = new CollaborationService(server);
+
 // Connect to database
 const startServer = async () => {
   try {
@@ -117,8 +123,9 @@ const startServer = async () => {
     
     const PORT = process.env.PORT || 5000;
     
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+      console.log('WebSocket server is ready for real-time collaboration');
     });
   } catch (error) {
     console.error(`Error starting server: ${error.message}`);

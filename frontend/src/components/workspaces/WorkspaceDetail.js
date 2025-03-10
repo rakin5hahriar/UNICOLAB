@@ -3,6 +3,10 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getWorkspaceById, deleteWorkspace, getWorkspaceItems } from '../../api/workspaceApi';
 import WorkspaceItemList from '../workspaceItems/WorkspaceItemList';
 import WorkspaceItemForm from '../workspaceItems/WorkspaceItemForm';
+import { useCollaboration } from '../../contexts/CollaborationContext';
+import CollaborationOverlay from '../CollaborationOverlay';
+import ActiveUsers from '../ActiveUsers';
+import CommentSection from '../CommentSection';
 import '../../pages/WorkspacePage.css';
 
 const WorkspaceDetail = () => {
@@ -13,6 +17,7 @@ const WorkspaceDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { joinWorkspace, leaveWorkspace } = useCollaboration();
 
   useEffect(() => {
     const fetchWorkspaceAndItems = async () => {
@@ -24,6 +29,12 @@ const WorkspaceDetail = () => {
         const itemsData = await getWorkspaceItems(id);
         setItems(itemsData);
 
+        // Join the workspace collaboration
+        const user = JSON.parse(localStorage.getItem('user')); // Get the current user
+        if (user) {
+          joinWorkspace(id, user._id, user.name);
+        }
+
         setLoading(false);
       } catch (err) {
         setError(err.message || 'Failed to fetch workspace details');
@@ -32,7 +43,12 @@ const WorkspaceDetail = () => {
     };
 
     fetchWorkspaceAndItems();
-  }, [id]);
+
+    // Cleanup: Leave the workspace when component unmounts
+    return () => {
+      leaveWorkspace(id);
+    };
+  }, [id, joinWorkspace, leaveWorkspace]);
 
   const handleDelete = async () => {
     try {
@@ -118,32 +134,40 @@ const WorkspaceDetail = () => {
           </div>
         </div>
 
-        <div className="workspace-items">
-          <div className="workspace-items-header">
-            <h2>Workspace Items</h2>
-          </div>
-          {items.length === 0 ? (
-            <div className="empty-state">
-              <i className="fas fa-box-open"></i>
-              <h3>No Items Yet</h3>
-              <p>Start adding items to your workspace to get started.</p>
-              <Link
-                to={`/workspace-items/new/${workspace._id}`}
-                className="workspace-btn view-workspace-btn"
-              >
-                <i className="fas fa-plus"></i>
-                Add Your First Item
-              </Link>
-            </div>
-          ) : (
-            <div className="workspace-items-grid">
-              <WorkspaceItemList
-                items={items}
-                onItemDeleted={(itemId) => setItems(items.filter(item => item._id !== itemId))}
-              />
-            </div>
-          )}
+        <div className="workspace-collaboration">
+          <ActiveUsers />
+          <CollaborationOverlay workspaceId={id} />
+          <CommentSection 
+            workspaceId={id} 
+            userId={JSON.parse(localStorage.getItem('user'))?._id} 
+            username={JSON.parse(localStorage.getItem('user'))?.name} 
+          />
         </div>
+
+        <div className="workspace-items-header">
+          <h2>Workspace Items</h2>
+        </div>
+        {items.length === 0 ? (
+          <div className="empty-state">
+            <i className="fas fa-box-open"></i>
+            <h3>No Items Yet</h3>
+            <p>Start adding items to your workspace to get started.</p>
+            <Link
+              to={`/workspace-items/new/${workspace._id}`}
+              className="workspace-btn view-workspace-btn"
+            >
+              <i className="fas fa-plus"></i>
+              Add Your First Item
+            </Link>
+          </div>
+        ) : (
+          <div className="workspace-items-grid">
+            <WorkspaceItemList
+              items={items}
+              onItemDeleted={(itemId) => setItems(items.filter(item => item._id !== itemId))}
+            />
+          </div>
+        )}
       </div>
 
       {/* Delete Confirmation Modal */}

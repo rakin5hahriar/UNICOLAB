@@ -1149,4 +1149,212 @@
 
 .btn-link:hover {
   color: #2980b9;
+}
+
+/* Collaboration Styles */
+.workspace-collaboration {
+  margin: 2rem 0;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 2rem;
+}
+
+.workspace-collaboration .comment-section {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.workspace-collaboration .active-users {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+}
+
+.cursor-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.cursor {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  transition: transform 0.1s ease;
+}
+
+.cursor-label {
+  position: absolute;
+  top: -20px;
+  left: 10px;
+  background-color: #4a5568;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* Comment Section Styles */
+.comment-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  height: fit-content;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+
+.comment-section h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.comment {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.comment-author {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.comment-time {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.comment-content {
+  color: #334155;
+  line-height: 1.5;
+}
+
+.comment-form {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.comment-form textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  resize: vertical;
+  font-size: 0.875rem;
+}
+
+.comment-form textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.comment-form button {
+  align-self: flex-end;
+  padding: 0.5rem 1rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.comment-form button:hover {
+  background: #2563eb;
+}
+
+.comment-form button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* Active Users Styles */
+.active-users {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  width: 250px;
+}
+
+.active-users h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.active-users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.active-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.user-name {
+  font-size: 0.875rem;
+  color: #334155;
+}
+
+/* Responsive Styles */
+@media (max-width: 1024px) {
+  .workspace-collaboration {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-collaboration .comment-section {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .active-users {
+    position: static;
+    width: 100%;
+  }
 } 
