@@ -61,16 +61,13 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/workspaces', workspaceRoutes);
 app.use('/api/workspace-items', workspaceItemRoutes);
+app.use('/api/files', fileRoutes);
 app.use('/api/notifications', notificationRoutes);
-app.use('/api/upload', fileRoutes);
-
-// Error handling middleware
-app.use(notFound);
-app.use(errorHandler);
 
 // Error handling middleware for file uploads
 app.use((err, req, res, next) => {
@@ -84,6 +81,10 @@ app.use((err, req, res, next) => {
   
   next(err);
 });
+
+// Error handling middleware
+app.use(notFound);
+app.use(errorHandler);
 
 // General error handling middleware
 app.use((req, res, next) => {

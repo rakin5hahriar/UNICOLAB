@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { getCourses } from '../api/courseApi';
+import { AuthContext } from '../context/AuthContext';
 import './CoursesPage.css';
 
 const CoursesPage = () => {
+  const { user } = useContext(AuthContext);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,10 +15,16 @@ const CoursesPage = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
+        console.log('Fetching courses...');
+        console.log('Current user:', user);
+        console.log('Auth token:', localStorage.getItem('token'));
+        
         setLoading(true);
         const data = await getCourses();
+        console.log('Courses data:', data);
         setCourses(data);
       } catch (err) {
+        console.error('Error in CoursesPage:', err);
         setError(err.message || 'Failed to fetch courses');
       } finally {
         setLoading(false);
@@ -24,7 +32,7 @@ const CoursesPage = () => {
     };
 
     fetchCourses();
-  }, []);
+  }, [user]);
 
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -139,7 +147,7 @@ const CoursesPage = () => {
                     </div>
                   </div>
                 </div>
-                <div className="course-content">
+                <div className="course-card-body">
                   {course.description && (
                     <p className="course-description">{course.description}</p>
                   )}

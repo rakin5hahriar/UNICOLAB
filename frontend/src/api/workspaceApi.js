@@ -95,30 +95,60 @@ export const getWorkspaces = async () => {
 
 export const getWorkspacesByCourse = async (courseId) => {
   try {
+    if (!courseId) {
+      throw new Error('Course ID is required');
+    }
+    console.log('Fetching workspaces for course:', courseId);
     const response = await api.get(`/workspaces/course/${courseId}`);
+    console.log('Workspaces fetched successfully:', response.data);
     return response.data;
   } catch (error) {
     console.error(`Error fetching workspaces for course ${courseId}:`, error);
+    if (error.response) {
+      console.error('Server response:', error.response.data);
+      throw new Error(error.response.data.message || 'Failed to fetch workspaces');
+    }
     throw error;
   }
 };
 
 export const getWorkspaceById = async (id) => {
   try {
+    if (!id) {
+      throw new Error('Workspace ID is required');
+    }
+    console.log('Fetching workspace:', id);
     const response = await api.get(`/workspaces/${id}`);
+    console.log('Workspace fetched successfully:', response.data);
     return response.data;
   } catch (error) {
     console.error(`Error fetching workspace ${id}:`, error);
+    if (error.response) {
+      console.error('Server response:', error.response.data);
+      throw new Error(error.response.data.message || 'Failed to fetch workspace');
+    }
     throw error;
   }
 };
 
 export const createWorkspace = async (workspaceData) => {
   try {
+    console.log('Creating workspace with API URL:', api.defaults.baseURL);
+    console.log('Workspace data:', workspaceData);
     const response = await api.post('/workspaces', workspaceData);
+    console.log('Workspace created successfully:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error creating workspace:', error);
+    if (error.response) {
+      console.error('Server response:', error.response.data);
+      console.error('Status code:', error.response.status);
+      console.error('Headers:', error.response.headers);
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+    } else {
+      console.error('Error setting up request:', error.message);
+    }
     throw error;
   }
 };

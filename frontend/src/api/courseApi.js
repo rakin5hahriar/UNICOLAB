@@ -6,6 +6,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 seconds timeout
 });
 
 // Add a request interceptor to include the auth token
@@ -15,21 +16,34 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    console.log('API Request:', config.method.toUpperCase(), config.url);
     return config;
   },
   (error) => {
+    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
 
-// Add a response interceptor to handle common errors
+// Add a response interceptor to handle authentication errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response:', response.status, response.config.url);
+    return response;
+  },
   (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized access
+    console.error('Course API Error:', error);
+    
+    // Handle 401 Unauthorized errors
+    if (error.response && error.response.status === 401) {
+      console.log('Authentication error, redirecting to login');
+      // Clear local storage and redirect to login
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      localStorage.removeItem('user');
+      // Only redirect if not already on login page
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
@@ -38,7 +52,9 @@ api.interceptors.response.use(
 // Course API endpoints
 export const getCourses = async () => {
   try {
+    console.log('Fetching courses...');
     const response = await api.get('/courses');
+    console.log('Courses fetched successfully:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching courses:', error);
@@ -64,25 +80,34 @@ export const createCourse = async (courseData) => {
     const response = await api.post('/courses', courseData);
     return response.data;
   } catch (error) {
-    throw new Error(error.response?.data?.message || error.message);
+    console.error('Error creating course:', error);
+    throw new Error(error.response?.data?.message || 'Failed to create course');
   }
 };
 
 export const updateCourse = async (id, courseData) => {
   try {
+    if (!id) {
+      throw new Error('Course ID is required');
+    }
     const response = await api.put(`/courses/${id}`, courseData);
     return response.data;
   } catch (error) {
-    throw new Error(error.response?.data?.message || error.message);
+    console.error('Error updating course:', error);
+    throw new Error(error.response?.data?.message || 'Failed to update course');
   }
 };
 
 export const deleteCourse = async (id) => {
   try {
+    if (!id) {
+      throw new Error('Course ID is required');
+    }
     const response = await api.delete(`/courses/${id}`);
     return response.data;
   } catch (error) {
-    throw new Error(error.response?.data?.message || error.message);
+    console.error('Error deleting course:', error);
+    throw new Error(error.response?.data?.message || 'Failed to delete course');
   }
 };
 

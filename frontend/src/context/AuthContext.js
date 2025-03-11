@@ -34,10 +34,17 @@ export const AuthProvider = ({ children }) => {
           // Set auth token header
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           
-          // Get user data
-          const res = await axios.get('/api/users/profile');
-          
-          setUser(res.data);
+          try {
+            // Get user data
+            const res = await axios.get(`${process.env.REACT_APP_API_URL}/auth/me`);
+            console.log('User profile loaded:', res.data);
+            setUser(res.data);
+          } catch (profileError) {
+            console.error('Error fetching user profile:', profileError);
+            // If profile fetch fails, token might be invalid
+            localStorage.removeItem('token');
+            delete axios.defaults.headers.common['Authorization'];
+          }
         }
       } catch (err) {
         // Clear token if invalid
@@ -61,10 +68,13 @@ export const AuthProvider = ({ children }) => {
       // Make sure we're not sending the auth header for login
       delete axios.defaults.headers.common['Authorization'];
       
-      const res = await axios.post('/api/users/login', { 
+      console.log('Attempting login with:', { email });
+      const res = await axios.post(`${process.env.REACT_APP_API_URL}/auth/login`, { 
         email, 
         password 
       });
+      
+      console.log('Login response:', res.data);
       
       // Save token to localStorage
       localStorage.setItem('token', res.data.token);
@@ -73,7 +83,7 @@ export const AuthProvider = ({ children }) => {
       axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
       
       // Set user data
-      setUser(res.data);
+      setUser(res.data.user || res.data);
       
       return true;
     } catch (err) {
@@ -94,7 +104,7 @@ export const AuthProvider = ({ children }) => {
       // Make sure we're not sending the auth header for register
       delete axios.defaults.headers.common['Authorization'];
       
-      const res = await axios.post('/api/users/register', {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL}/auth/register`, {
         name,
         email,
         password
@@ -107,7 +117,7 @@ export const AuthProvider = ({ children }) => {
       axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
       
       // Set user data
-      setUser(res.data);
+      setUser(res.data.user || res.data);
       
       return true;
     } catch (err) {

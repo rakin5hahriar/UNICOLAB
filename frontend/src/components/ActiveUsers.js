@@ -33,18 +33,23 @@ const UserAvatar = ({ username }) => {
 };
 
 const ActiveUsers = () => {
-    const { activeUsers } = useCollaboration();
+    const context = useCollaboration();
+    // Initialize activeUsers as an empty Map if it doesn't exist in the context
+    const activeUsers = context.activeUsers || new Map();
 
     return (
         <div className="fixed top-4 right-4 bg-white rounded-lg shadow-lg p-4">
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Active Users</h3>
             <div className="flex flex-col space-y-3">
-                {Array.from(activeUsers.entries()).map(([userId, user]) => (
+                {activeUsers instanceof Map && Array.from(activeUsers.entries()).map(([userId, user]) => (
                     <div key={userId} className="flex items-center space-x-3">
                         <UserAvatar username={user.username} />
                         <span className="text-sm text-gray-600">{user.username}</span>
                     </div>
                 ))}
+                {(!activeUsers || !(activeUsers instanceof Map) || activeUsers.size === 0) && (
+                    <div className="text-sm text-gray-500">No active users</div>
+                )}
             </div>
         </div>
     );

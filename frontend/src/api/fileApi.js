@@ -1,8 +1,11 @@
 import axios from 'axios';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 // Create an axios instance for file uploads
 const fileApi = axios.create({
-  baseURL: '/api/upload',
+  baseURL: `${API_URL}/files`,
+  // Don't set Content-Type here as it will be set automatically for multipart/form-data
 });
 
 // Add a request interceptor to include the auth token

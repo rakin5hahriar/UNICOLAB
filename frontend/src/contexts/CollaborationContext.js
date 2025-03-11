@@ -9,6 +9,8 @@ export const CollaborationProvider = ({ children }) => {
   const [activeSession, setActiveSession] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [activeUsers, setActiveUsers] = useState(new Map());
+  const [comments, setComments] = useState([]);
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
@@ -43,6 +45,15 @@ export const CollaborationProvider = ({ children }) => {
 
     newSocket.on('message_received', (message) => {
       setMessages(prev => [...prev, message]);
+    });
+
+    // Add workspace collaboration events
+    newSocket.on('user-joined', (data) => {
+      console.log('User joined workspace:', data);
+    });
+
+    newSocket.on('user-left', (data) => {
+      console.log('User left workspace:', data);
     });
 
     setSocket(newSocket);
@@ -110,15 +121,54 @@ export const CollaborationProvider = ({ children }) => {
     });
   };
 
+  // Add workspace collaboration functions
+  const joinWorkspace = (workspaceId, userId, username) => {
+    if (!socket) return;
+    
+    socket.emit('join-workspace', { 
+      workspaceId, 
+      userId: userId || user?.id, 
+      username: username || user?.name 
+    });
+  };
+
+  const leaveWorkspace = (workspaceId) => {
+    if (!socket) return;
+    
+    socket.emit('leave-workspace', { 
+      workspaceId 
+    });
+  };
+
+  // Add comment function
+  const addComment = (workspaceId, comment, userId) => {
+    if (!socket) return;
+    
+    // Add comment to local state
+    setComments(prev => [...prev, comment]);
+    
+    // Emit comment to server
+    socket.emit('add-comment', { 
+      workspaceId, 
+      comment,
+      userId
+    });
+  };
+
   const value = {
     socket,
     activeSession,
     participants,
     messages,
+    activeUsers: new Map(),
+    comments,
+    addComment,
     createSession,
     joinSession,
     leaveSession,
-    sendMessage
+    sendMessage,
+    joinWorkspace,
+    leaveWorkspace
   };
 
   return (

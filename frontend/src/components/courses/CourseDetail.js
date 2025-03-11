@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getCourseById, deleteCourse } from '../../api/courseApi';
 import WorkspaceList from '../workspaces/WorkspaceList';
 import { toast } from 'react-toastify';
+import './CourseDetail.css';
 
 const CourseDetail = () => {
   const { id } = useParams();
@@ -49,128 +50,107 @@ const CourseDetail = () => {
       console.error('Error deleting course:', err);
       setError(err.message);
       toast.error('Failed to delete course. Please try again.');
-      setShowDeleteConfirm(false);
     }
   };
 
-  const handleWorkspaceDeleted = () => {
-    setRefreshKey(prev => prev + 1); // Force refresh when a workspace is deleted
-  };
-
   if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Loading course details...</p>
-      </div>
-    );
+    return <div className="loading">
+      <i className="fas fa-circle-notch fa-spin fa-2x"></i>
+      <p>Loading course details...</p>
+    </div>;
   }
 
   if (error) {
-    return (
-      <div className="error-container">
-        <div className="error-icon">
-          <i className="fas fa-exclamation-circle"></i>
-        </div>
-        <h3>Error Loading Course</h3>
-        <p>{error}</p>
-        <button onClick={() => setRefreshKey(prev => prev + 1)} className="btn-primary">
-          <i className="fas fa-sync-alt"></i> Try Again
-        </button>
-      </div>
-    );
+    return <div className="error">
+      <i className="fas fa-exclamation-circle fa-2x"></i>
+      <p>Error: {error}</p>
+      <button 
+        onClick={() => setRefreshKey(prev => prev + 1)}
+        className="btn btn-primary"
+      >
+        Try Again
+      </button>
+    </div>;
   }
 
   if (!course) {
-    return (
-      <div className="error-container">
-        <div className="error-icon">
-          <i className="fas fa-folder-open"></i>
-        </div>
-        <h3>Course Not Found</h3>
-        <p>The course you're looking for doesn't exist or has been deleted.</p>
-        <Link to="/courses" className="btn-primary">
-          <i className="fas fa-arrow-left"></i> Back to Courses
-        </Link>
-      </div>
-    );
+    return <div className="error">
+      <i className="fas fa-folder-open fa-2x"></i>
+      <p>Course not found</p>
+      <Link to="/courses" className="btn btn-primary">
+        Back to Courses
+      </Link>
+    </div>;
   }
 
   return (
     <div className="course-detail">
       <div className="course-header">
-        <h1>{course.name}</h1>
+        <h2>{course.title}</h2>
         <div className="course-actions">
-          <Link to={`/courses/edit/${course._id}`} className="btn-edit">
+          <Link to={`/courses/edit/${id}`} className="btn btn-primary">
             <i className="fas fa-edit"></i> Edit Course
           </Link>
-          <button onClick={() => setShowDeleteConfirm(true)} className="btn-delete">
-            <i className="fas fa-trash-alt"></i> Delete Course
+          <button onClick={() => setShowDeleteConfirm(true)} className="btn btn-danger">
+            <i className="fas fa-trash"></i> Delete Course
           </button>
         </div>
       </div>
 
-      <div className="course-content">
-        <div className="course-info-card">
-          <div className="card-header">
-            <h2><i className="fas fa-info-circle"></i> Course Information</h2>
+      <div className="course-info">
+        <div className="course-info-grid">
+          <div className="info-item">
+            <span className="info-label">Course Code</span>
+            <span className="info-value">{course.code || 'N/A'}</span>
           </div>
-          <div className="card-body">
-            {course.description ? (
-              <div className="course-description">
-                <h3><i className="fas fa-align-left"></i> Description</h3>
-                <p>{course.description}</p>
-              </div>
-            ) : (
-              <div className="no-description">
-                <p><i className="fas fa-exclamation-circle"></i> No description available</p>
-              </div>
-            )}
-            
-            <div className="course-meta-info">
-              {course.instructor && (
-                <div className="meta-item">
-                  <i className="fas fa-user-tie"></i>
-                  <span>Instructor: {course.instructor}</span>
-                </div>
-              )}
-              
-              {course.semester && course.year && (
-                <div className="meta-item">
-                  <i className="fas fa-calendar-alt"></i>
-                  <span>Term: {course.semester} {course.year}</span>
-                </div>
-              )}
+          <div className="info-item">
+            <span className="info-label">Instructor</span>
+            <span className="info-value">{course.instructor || 'N/A'}</span>
+          </div>
+          <div className="info-item">
+            <span className="info-label">Semester</span>
+            <span className="info-value">{course.semester || 'N/A'}</span>
+          </div>
+          <div className="info-item">
+            <span className="info-label">Year</span>
+            <span className="info-value">{course.year || 'N/A'}</span>
+          </div>
+        </div>
+        
+        <div className="description-section">
+          <div className="description-label">Description</div>
+          {course.description ? (
+            <div className="description-content">
+              {course.description}
             </div>
-          </div>
+          ) : (
+            <div className="description-content no-description">
+              No description available
+            </div>
+          )}
         </div>
+      </div>
 
-        <div className="workspaces-section">
-          <div className="section-header">
-            <h2><i className="fas fa-folder"></i> Workspaces</h2>
-            <Link to={`/courses/${course._id}/workspaces/add`} className="btn-add">
-              <i className="fas fa-plus"></i> Add Workspace
-            </Link>
-          </div>
-          
-          <WorkspaceList 
-            courseId={course._id} 
-            onWorkspaceDeleted={handleWorkspaceDeleted}
-          />
+      <div className="workspaces-section">
+        <div className="section-header">
+          <h3>Workspaces</h3>
+          <Link to={`/courses/${id}/workspaces/add`} className="btn btn-primary">
+            <i className="fas fa-plus"></i> Add Workspace
+          </Link>
         </div>
+        {course && <WorkspaceList courseId={id} onWorkspaceDeleted={() => setRefreshKey(prev => prev + 1)} />}
       </div>
 
       {showDeleteConfirm && (
         <div className="modal-overlay">
           <div className="modal-content">
             <h3>Delete Course</h3>
-            <p>Are you sure you want to delete <strong>{course.name}</strong>?</p>
-            <p>This action cannot be undone and all workspaces and items in this course will be permanently deleted.</p>
+            <p>Are you sure you want to delete <strong>{course.title}</strong>? This action cannot be undone and all associated workspaces will be deleted.</p>
             <div className="modal-actions">
-              <button onClick={() => setShowDeleteConfirm(false)} className="btn-secondary">
+              <button onClick={() => setShowDeleteConfirm(false)} className="btn btn-secondary">
                 Cancel
               </button>
-              <button onClick={handleDelete} className="btn-danger">
+              <button onClick={handleDelete} className="btn btn-danger">
                 Delete Course
               </button>
             </div>

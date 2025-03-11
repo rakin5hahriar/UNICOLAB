@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -16,8 +16,15 @@ const Login = () => {
   const [activeInput, setActiveInput] = useState(null);
   const [rememberMe, setRememberMe] = useState(false);
   
-  const { login } = useContext(AuthContext);
+  const { login, user } = useContext(AuthContext);
   const navigate = useNavigate();
+  
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,6 +32,10 @@ const Login = () => {
       ...formData,
       [name]: value,
     });
+    // Clear error when user starts typing
+    if (error) {
+      setError(null);
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -47,6 +58,7 @@ const Login = () => {
       setLoading(true);
       setError(null);
       
+      console.log('Submitting login form with email:', formData.email);
       const success = await login(formData.email, formData.password, rememberMe);
       
       if (success) {
@@ -63,7 +75,7 @@ const Login = () => {
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(err.response?.data?.message || 'Invalid credentials. Please check your email and password.');
       toast.error('Login failed. Please try again.', {
         position: "top-right",
         autoClose: 5000,
@@ -127,7 +139,7 @@ const Login = () => {
 
             <div className="form-group">
               <label htmlFor="password">Password</label>
-              <div className="relative">
+              <div className="password-input">
                 <input
                   id="password"
                   name="password"
@@ -143,7 +155,7 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={togglePasswordVisibility}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors"
+                  className="password-toggle"
                 >
                   {isPasswordVisible ? (
                     <i className="fas fa-eye-slash"></i>
@@ -177,8 +189,8 @@ const Login = () => {
               whileTap={{ scale: 0.98 }}
             >
               {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600 mr-2"></div>
+                <div className="loading-indicator">
+                  <div className="spinner"></div>
                   <span>Signing in...</span>
                 </div>
               ) : (

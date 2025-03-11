@@ -15,7 +15,11 @@ const WorkspaceList = ({ courseId, onWorkspaceDeleted }) => {
 
   useEffect(() => {
     const fetchWorkspaces = async () => {
-      if (!courseId) return;
+      if (!courseId) {
+        setError('Course ID is required');
+        setLoading(false);
+        return;
+      }
       
       try {
         setLoading(true);
@@ -24,7 +28,7 @@ const WorkspaceList = ({ courseId, onWorkspaceDeleted }) => {
         setWorkspaces(data || []);
       } catch (err) {
         console.error('Error fetching workspaces:', err);
-        setError(err.message || 'Failed to fetch workspaces');
+        setError(err.response?.data?.message || err.message || 'Failed to fetch workspaces');
         toast.error('Failed to fetch workspaces. Please try again.');
       } finally {
         setLoading(false);
@@ -41,56 +45,38 @@ const WorkspaceList = ({ courseId, onWorkspaceDeleted }) => {
 
   const handleDelete = async () => {
     if (!workspaceToDelete) return;
-    
+
     try {
       setIsDeleting(true);
       await deleteWorkspace(workspaceToDelete._id);
-      
-      setWorkspaces(prevWorkspaces => 
-        prevWorkspaces.filter(w => w._id !== workspaceToDelete._id)
-      );
-      
-      if (onWorkspaceDeleted) {
-        onWorkspaceDeleted(workspaceToDelete._id);
-      }
-      
+      setWorkspaces(workspaces.filter(w => w._id !== workspaceToDelete._id));
       toast.success('Workspace deleted successfully');
-      setShowDeleteModal(false);
-      setWorkspaceToDelete(null);
-      setRefreshKey(prev => prev + 1);
+      if (onWorkspaceDeleted) {
+        onWorkspaceDeleted();
+      }
     } catch (err) {
-      console.error('Failed to delete workspace:', err);
-      toast.error('Failed to delete workspace. Please try again.');
-      setError('Failed to delete workspace. Please try again.');
+      console.error('Error deleting workspace:', err);
+      toast.error(err.response?.data?.message || 'Failed to delete workspace');
     } finally {
       setIsDeleting(false);
+      setShowDeleteModal(false);
+      setWorkspaceToDelete(null);
     }
   };
 
   if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner">
-          <i className="fas fa-circle-notch fa-spin"></i>
-        </div>
-        <p>Loading workspaces...</p>
-      </div>
-    );
+    return <div className="loading">Loading workspaces...</div>;
   }
 
   if (error) {
     return (
       <div className="error-container">
-        <div className="error-icon">
-          <i className="fas fa-exclamation-circle"></i>
-        </div>
-        <h3>Error Loading Workspaces</h3>
-        <p>{error}</p>
+        <p className="error-message">{error}</p>
         <button 
-          onClick={() => window.location.reload()} 
-          className="btn-primary"
+          onClick={() => setRefreshKey(prev => prev + 1)} 
+          className="btn btn-primary"
         >
-          <i className="fas fa-redo"></i> Try Again
+          Try Again
         </button>
       </div>
     );
@@ -98,107 +84,66 @@ const WorkspaceList = ({ courseId, onWorkspaceDeleted }) => {
 
   if (workspaces.length === 0) {
     return (
-      <div className="empty-workspaces">
-        <div className="empty-icon">
-          <i className="fas fa-folder-open"></i>
-        </div>
-        <h3>No Workspaces Yet</h3>
-        <p>Create your first workspace to organize your course materials.</p>
-        <Link 
-          to={`/courses/${courseId}/workspaces/add`} 
-          className="btn-primary"
-        >
-          <i className="fas fa-plus"></i> Create First Workspace
+      <div className="empty-state">
+        <p>No workspaces found for this course.</p>
+        <Link to={`/courses/${courseId}/workspaces/add`} className="btn btn-primary">
+          Create First Workspace
         </Link>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="workspaces-grid">
-        {workspaces.map((workspace) => (
-          <div key={workspace._id} className="workspace-card">
-            <div className="workspace-header">
-              <div className="workspace-icon">
-                <i className="fas fa-folder"></i>
-              </div>
-              <h3>{workspace.name}</h3>
-            </div>
-            <div className="workspace-content">
-              {workspace.description && (
-                <p className="workspace-description">{workspace.description}</p>
-              )}
-              <div className="workspace-meta">
-                <span>
-                  <i className="fas fa-clock"></i>
-                  {new Date(workspace.createdAt).toLocaleDateString()}
-                </span>
-                <span>
-                  <i className="fas fa-file"></i>
-                  {workspace.itemCount || 0} items
-                </span>
-              </div>
-            </div>
-            <div className="workspace-actions">
-              <Link 
-                to={`/workspaces/${workspace._id}`} 
-                className="btn-view"
-              >
-                <i className="fas fa-folder-open"></i> View Items
-              </Link>
-              <Link 
-                to={`/workspaces/edit/${workspace._id}`} 
-                className="btn-edit"
-              >
-                <i className="fas fa-edit"></i> Edit
-              </Link>
-              <button 
-                onClick={() => handleDeleteClick(workspace)}
-                className="btn-delete"
-                disabled={isDeleting}
-              >
-                <i className="fas fa-trash-alt"></i> Delete
-              </button>
-            </div>
+    <div className="workspaces-list">
+      {workspaces.map((workspace) => (
+        <div key={workspace._id} className="workspace-card">
+          <div className="workspace-info">
+            <h3>{workspace.name}</h3>
+            <p>{workspace.description || 'No description available'}</p>
           </div>
-        ))}
-      </div>
+          <div className="workspace-actions">
+            <Link 
+              to={`/workspaces/${workspace._id}`} 
+              className="btn btn-primary"
+            >
+              View Workspace
+            </Link>
+            <button
+              onClick={() => handleDeleteClick(workspace)}
+              className="btn btn-danger"
+              disabled={isDeleting}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      ))}
 
-      {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="modal-overlay">
+        <div className="modal">
           <div className="modal-content">
             <h3>Delete Workspace</h3>
-            <p>Are you sure you want to delete <strong>{workspaceToDelete?.name}</strong>? This action cannot be undone.</p>
+            <p>Are you sure you want to delete this workspace? This action cannot be undone.</p>
             <div className="modal-actions">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="btn-secondary"
+              <button 
+                onClick={handleDelete} 
+                className="btn btn-danger" 
                 disabled={isDeleting}
               >
-                <i className="fas fa-times"></i> Cancel
+                {isDeleting ? 'Deleting...' : 'Delete'}
               </button>
-              <button
-                onClick={handleDelete}
-                className="btn-danger"
+              <button 
+                onClick={() => setShowDeleteModal(false)} 
+                className="btn btn-secondary"
                 disabled={isDeleting}
               >
-                {isDeleting ? (
-                  <>
-                    <i className="fas fa-circle-notch fa-spin"></i> Deleting...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-trash-alt"></i> Delete
-                  </>
-                )}
+                Cancel
               </button>
             </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

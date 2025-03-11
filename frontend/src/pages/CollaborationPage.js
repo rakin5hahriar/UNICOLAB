@@ -1,310 +1,163 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useParams } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
-import { useCollaboration } from '../contexts/CollaborationContext';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import CollaborativeEditor from '../components/collaboration/CollaborativeEditor';
+import { nanoid } from 'nanoid';
 import './CollaborationPage.css';
 
 const CollaborationPage = () => {
-  const { user } = useContext(AuthContext);
   const { sessionId } = useParams();
-  const [joinCode, setJoinCode] = useState(sessionId || '');
-  const [sessionName, setSessionName] = useState('');
-  const [error, setError] = useState(null);
-  const [documents, setDocuments] = useState([]);
-  const [showNewDocModal, setShowNewDocModal] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [selectedDoc, setSelectedDoc] = useState(null);
-  const [newDocName, setNewDocName] = useState('');
-  const [shareEmail, setShareEmail] = useState('');
-  const [accessLevel, setAccessLevel] = useState('view'); // 'view' or 'edit'
-  
-  const {
-    activeSession,
-    participants,
-    messages,
-    createSession,
-    joinSession,
-    leaveSession
-  } = useCollaboration();
+  const navigate = useNavigate();
+  const [joinCode, setJoinCode] = useState('');
+  const [isJoining, setIsJoining] = useState(false);
+  const [activeSession, setActiveSession] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newSessionName, setNewSessionName] = useState('');
 
+  // Set active session from URL parameter
   useEffect(() => {
-    // If there's a sessionId in the URL, join that session
     if (sessionId) {
-      handleJoinSession(sessionId);
+      setActiveSession(sessionId);
     }
-    
-    // Cleanup: leave session when component unmounts
-    return () => {
-      if (activeSession) {
-        leaveSession();
-      }
-    };
   }, [sessionId]);
 
-  // Fetch user's documents (owned + shared with them)
-  useEffect(() => {
-    fetchDocuments();
-  }, []);
-
-  const fetchDocuments = async () => {
+  // Handle joining a session
+  const handleJoinSession = useCallback(async (code) => {
     try {
-      // TODO: Implement API call to fetch documents
-      // For now using mock data
-      setDocuments([
-        { id: 1, name: 'Project Proposal', owner: user.email, shared: [] },
-        { id: 2, name: 'Meeting Notes', owner: 'colleague@example.com', shared: [{ email: user.email, access: 'edit' }] }
-      ]);
+      setIsJoining(true);
+      
+      if (!code.trim()) {
+        toast.error('Please enter a session code');
+        return;
+      }
+
+      // In a real app, you might validate the session code on the server
+      // For now, we'll just navigate to the session
+      navigate(`/collaboration/${code}`);
+      setActiveSession(code);
+      toast.success('Joined session successfully!');
     } catch (err) {
-      toast.error('Failed to fetch documents');
+      console.error('Error joining session:', err);
+      toast.error('Failed to join session. Please check the code and try again.');
+    } finally {
+      setIsJoining(false);
+      setJoinCode('');
     }
-  };
+  }, [navigate]);
 
-  const handleCreateSession = async () => {
+  // Handle creating a new session
+  const handleCreateSession = () => {
     try {
-      if (!sessionName.trim()) {
+      if (!newSessionName.trim()) {
         toast.error('Please enter a session name');
         return;
       }
 
-      const session = await createSession({
-        name: sessionName,
-        description: `Collaboration session created by ${user.name}`,
-        createdBy: user.id
-      });
-
-      if (session) {
-        toast.success('Session created successfully!');
-        setSessionName('');
-        // The session code will be shown to the user
-        toast.info(`Share this code with others: ${session.code}`);
-      }
+      // Generate a unique session ID
+      const sessionId = nanoid(10);
+      
+      // In a real app, you would save this session to the database
+      setActiveSession(sessionId);
+      navigate(`/collaboration/${sessionId}`);
+      toast.success(`Created session: ${newSessionName}`);
+      setShowCreateModal(false);
+      setNewSessionName('');
     } catch (err) {
       console.error('Error creating session:', err);
       toast.error('Failed to create session. Please try again.');
     }
   };
 
-  const handleJoinSession = async (code) => {
-    try {
-      if (!code.trim()) {
-        toast.error('Please enter a session code');
-        return;
-      }
-
-      await joinSession(code);
-      toast.success('Joined session successfully!');
-      setJoinCode('');
-    } catch (err) {
-      console.error('Error joining session:', err);
-      toast.error('Failed to join session. Please check the code and try again.');
-    }
-  };
-
-  const handleCreateDocument = async () => {
-    try {
-      if (!newDocName.trim()) {
-        toast.error('Please enter a document name');
-        return;
-      }
-      // TODO: Implement API call to create document
-      const newDoc = {
-        id: Date.now(),
-        name: newDocName,
-        owner: user.email,
-        shared: []
-      };
-      setDocuments([...documents, newDoc]);
-      setNewDocName('');
-      setShowNewDocModal(false);
-      toast.success('Document created successfully!');
-    } catch (err) {
-      toast.error('Failed to create document');
-    }
-  };
-
-  const handleShareDocument = async () => {
-    try {
-      if (!shareEmail.trim()) {
-        toast.error('Please enter an email address');
-        return;
-      }
-      // TODO: Implement API call to share document
-      const updatedDocs = documents.map(doc => {
-        if (doc.id === selectedDoc.id) {
-          return {
-            ...doc,
-            shared: [...doc.shared, { email: shareEmail, access: accessLevel }]
-          };
-        }
-        return doc;
-      });
-      setDocuments(updatedDocs);
-      setShareEmail('');
-      setShowShareModal(false);
-      toast.success(`Document shared with ${shareEmail}`);
-    } catch (err) {
-      toast.error('Failed to share document');
-    }
+  // Handle leaving the current session
+  const handleLeaveSession = () => {
+    setActiveSession(null);
+    navigate('/collaboration');
+    toast.info('Left the session');
   };
 
   return (
     <div className="collaboration-page">
       <div className="collaboration-header">
         <h1>Real-time Collaboration</h1>
-        <p>Work together with your peers in real-time</p>
+        <p>Work together with your team in real-time</p>
       </div>
 
-      <div className="collaboration-content">
-        {activeSession ? (
-          // Active Session View
-          <div className="active-session-container">
-            <div className="session-info">
-              <h2>{activeSession.name}</h2>
-              <div className="participant-list">
-                <h3>Participants ({participants.length})</h3>
-                <ul>
-                  {participants.map((participant) => (
-                    <li key={participant.id}>
-                      {participant.username}
-                      {participant.id === activeSession.createdBy && ' (Host)'}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <button 
-                onClick={leaveSession}
-                className="leave-button"
-              >
-                Leave Session
-              </button>
-            </div>
-
-            <div className="collaboration-workspace">
-              {/* Add your collaborative workspace components here */}
-              <div className="workspace-placeholder">
-                <h3>Collaborative Workspace</h3>
-                <p>This is where your collaborative tools will appear</p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          // Session Join/Create View
-          <div className="collaboration-actions">
-            <div className="join-session">
+      {!activeSession ? (
+        <div className="collaboration-join">
+          <div className="join-options">
+            <div className="join-card">
               <h2>Join Existing Session</h2>
+              <p>Enter a session code to collaborate with others</p>
               <div className="join-form">
                 <input
                   type="text"
                   placeholder="Enter session code"
                   value={joinCode}
                   onChange={(e) => setJoinCode(e.target.value)}
-                  className="join-input"
                 />
                 <button 
                   onClick={() => handleJoinSession(joinCode)}
-                  className="join-button"
+                  disabled={isJoining || !joinCode.trim()}
                 >
-                  Join Session
+                  {isJoining ? 'Joining...' : 'Join Session'}
                 </button>
               </div>
             </div>
 
-            <div className="create-session">
+            <div className="join-card">
               <h2>Create New Session</h2>
-              <p>Start a new collaboration session and invite others</p>
-              <input
-                type="text"
-                placeholder="Enter session name"
-                value={sessionName}
-                onChange={(e) => setSessionName(e.target.value)}
-                className="session-name-input"
-              />
-              <button 
-                onClick={handleCreateSession}
-                className="create-button"
-              >
+              <p>Start a new collaboration session</p>
+              <button onClick={() => setShowCreateModal(true)}>
                 Create Session
               </button>
             </div>
           </div>
-        )}
-      </div>
-
-      <div className="documents-list">
-        <h2>Your Documents</h2>
-        {documents.map(doc => (
-          <div key={doc.id} className="document-item">
-            <div className="document-info">
-              <h3>{doc.name}</h3>
-              <p>Owner: {doc.owner}</p>
-              {doc.shared.length > 0 && (
-                <p>Shared with: {doc.shared.map(s => s.email).join(', ')}</p>
-              )}
-            </div>
-            <div className="document-actions">
-              <button 
-                className="edit-button"
-                onClick={() => {/* TODO: Implement document editing */}}
-              >
-                Open
-              </button>
-              {doc.owner === user.email && (
-                <button 
-                  className="share-button"
-                  onClick={() => {
-                    setSelectedDoc(doc);
-                    setShowShareModal(true);
-                  }}
-                >
-                  Share
-                </button>
-              )}
-            </div>
+        </div>
+      ) : (
+        <div className="collaboration-workspace">
+          <div className="workspace-header">
+            <h2>Session: {activeSession}</h2>
+            <button onClick={handleLeaveSession} className="leave-button">
+              Leave Session
+            </button>
           </div>
-        ))}
-      </div>
-
-      {/* New Document Modal */}
-      {showNewDocModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Create New Document</h2>
-            <input
-              type="text"
-              placeholder="Document name"
-              value={newDocName}
-              onChange={(e) => setNewDocName(e.target.value)}
-            />
-            <div className="modal-actions">
-              <button onClick={() => setShowNewDocModal(false)}>Cancel</button>
-              <button onClick={handleCreateDocument}>Create</button>
-            </div>
+          
+          <div className="editor-container">
+            <CollaborativeEditor workspaceId={activeSession} />
+          </div>
+          
+          <div className="collaboration-info">
+            <p>
+              Share this link with others to invite them to this session:
+              <br />
+              <code>{window.location.href}</code>
+            </p>
           </div>
         </div>
       )}
 
-      {/* Share Modal */}
-      {showShareModal && (
-        <div className="modal">
+      {/* Create Session Modal */}
+      {showCreateModal && (
+        <div className="modal-overlay">
           <div className="modal-content">
-            <h2>Share Document</h2>
+            <h2>Create New Session</h2>
             <input
-              type="email"
-              placeholder="Enter email address"
-              value={shareEmail}
-              onChange={(e) => setShareEmail(e.target.value)}
+              type="text"
+              placeholder="Session Name"
+              value={newSessionName}
+              onChange={(e) => setNewSessionName(e.target.value)}
             />
-            <select
-              value={accessLevel}
-              onChange={(e) => setAccessLevel(e.target.value)}
-            >
-              <option value="view">Can view</option>
-              <option value="edit">Can edit</option>
-            </select>
             <div className="modal-actions">
-              <button onClick={() => setShowShareModal(false)}>Cancel</button>
-              <button onClick={handleShareDocument}>Share</button>
+              <button onClick={() => setShowCreateModal(false)} className="cancel-button">
+                Cancel
+              </button>
+              <button 
+                onClick={handleCreateSession}
+                disabled={!newSessionName.trim()}
+                className="create-button"
+              >
+                Create
+              </button>
             </div>
           </div>
         </div>

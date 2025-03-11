@@ -24,6 +24,7 @@ const register = async (req, res) => {
     // Send token response
     sendTokenResponse(user, 201, res);
   } catch (error) {
+    console.error('Register error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -40,10 +41,13 @@ const login = async (req, res) => {
       return res.status(400).json({ message: 'Please provide email and password' });
     }
 
+    console.log(`Login attempt for email: ${email}`);
+
     // Check for user
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
+      console.log(`User not found: ${email}`);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
@@ -51,12 +55,15 @@ const login = async (req, res) => {
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
+      console.log(`Password mismatch for user: ${email}`);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    console.log(`Successful login for user: ${email}`);
     // Send token response
     sendTokenResponse(user, 200, res);
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -67,20 +74,31 @@ const login = async (req, res) => {
 const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-
-    res.status(200).json(user);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    res.status(200).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+    });
   } catch (error) {
+    console.error('Get user profile error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// @desc    Logout user / clear cookie
+// @desc    Log user out / clear cookie
 // @route   GET /api/auth/logout
 // @access  Private
 const logout = async (req, res) => {
   try {
-    res.status(200).json({ message: 'Successfully logged out' });
+    res.status(200).json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
+    console.error('Logout error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -97,7 +115,7 @@ const sendTokenResponse = (user, statusCode, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      role: user.role,
+      isAdmin: user.isAdmin,
     },
   });
 };

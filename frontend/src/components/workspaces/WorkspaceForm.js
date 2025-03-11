@@ -111,7 +111,9 @@ const WorkspaceForm = ({ courseId }) => {
         toast.success('Workspace updated successfully');
         navigate(`/workspaces/${id}`);
       } else {
+        console.log('Creating workspace with data:', formData);
         const newWorkspace = await createWorkspace(formData);
+        console.log('Workspace created:', newWorkspace);
         toast.success('Workspace created successfully');
         if (courseId) {
           navigate(`/courses/${courseId}`);
@@ -121,8 +123,14 @@ const WorkspaceForm = ({ courseId }) => {
       }
     } catch (err) {
       console.error('Error saving workspace:', err);
-      toast.error(err.message || 'Failed to save workspace. Please try again.');
-      setError(err.message || 'Failed to save workspace. Please try again.');
+      if (err.response) {
+        console.error('Server response:', err.response.data);
+        setError(err.response.data.message || 'Failed to save workspace. Please try again.');
+        toast.error(err.response.data.message || 'Failed to save workspace. Please try again.');
+      } else {
+        setError(err.message || 'Failed to save workspace. Please try again.');
+        toast.error(err.message || 'Failed to save workspace. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

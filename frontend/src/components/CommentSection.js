@@ -16,7 +16,11 @@ const Comment = ({ comment }) => {
 };
 
 const CommentSection = ({ workspaceId, userId, username }) => {
-    const { comments, addComment } = useCollaboration();
+    const context = useCollaboration();
+    // Initialize comments as an empty array if it doesn't exist in the context
+    const comments = context.comments || [];
+    const addComment = context.addComment || (() => console.log('addComment not available'));
+    
     const [newComment, setNewComment] = useState('');
 
     const handleSubmit = (e) => {
@@ -38,9 +42,13 @@ const CommentSection = ({ workspaceId, userId, username }) => {
             <h3 className="text-lg font-semibold mb-4">Comments</h3>
             
             <div className="space-y-4 mb-4 max-h-96 overflow-y-auto">
-                {comments.map((comment, index) => (
-                    <Comment key={index} comment={comment} />
-                ))}
+                {comments && comments.length > 0 ? (
+                    comments.map((comment, index) => (
+                        <Comment key={index} comment={comment} />
+                    ))
+                ) : (
+                    <p className="text-gray-500">No comments yet. Be the first to comment!</p>
+                )}
             </div>
 
             <form onSubmit={handleSubmit} className="mt-4">

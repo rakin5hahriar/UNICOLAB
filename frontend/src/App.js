@@ -29,11 +29,18 @@ import CoursesPage from './pages/CoursesPage';
 import CourseFormPage from './pages/CourseFormPage';
 import CourseDetailPage from './pages/CourseDetailPage';
 
+// New Workspace Pages
+import WorkspacesPage from './pages/WorkspacesPage';
+import WorkspaceDetailPage from './pages/WorkspaceDetailPage';
+import CreateWorkspacePage from './pages/CreateWorkspacePage';
+import EditWorkspacePage from './pages/EditWorkspacePage';
+
 // Components
 import PrivateRoute from './components/routing/PrivateRoute';
 import WorkspaceItemFormPage from './pages/WorkspaceItemFormPage';
 import WorkspaceItemDetailPage from './pages/WorkspaceItemDetailPage';
 import CollaborationPage from './pages/CollaborationPage';
+import WorkspaceListPage from './pages/WorkspaceList';
 
 function App() {
   useEffect(() => {
@@ -48,6 +55,14 @@ function App() {
         });
       }
     });
+  }, []);
+
+  // Add cleanup function for collaboration context
+  useEffect(() => {
+    return () => {
+      // This ensures we don't try to call leaveWorkspace on unmount
+      // Instead, we'll rely on the cleanup in CollaborationContext
+    };
   }, []);
 
   return (
@@ -77,7 +92,7 @@ function App() {
                       <CollaborationPage />
                     </PrivateRoute>
                   } />
-                  <Route path="/collaboration/join/:sessionId" element={
+                  <Route path="/collaboration/:sessionId" element={
                     <PrivateRoute>
                       <CollaborationPage />
                     </PrivateRoute>
@@ -106,26 +121,53 @@ function App() {
                   } />
                   
                   {/* Course Workspace Routes */}
+                  <Route path="/courses/:courseId/workspaces" element={
+                    <PrivateRoute>
+                      <WorkspaceListPage />
+                    </PrivateRoute>
+                  } />
                   <Route path="/courses/:courseId/workspaces/add" element={
                     <PrivateRoute>
                       <WorkspaceFormPage />
                     </PrivateRoute>
                   } />
                   
-                  {/* Workspace Routes */}
-                  <Route path="/workspaces/:id" element={
+                  {/* Legacy Workspace Routes */}
+                  <Route path="/workspaces/legacy/new" element={
+                    <PrivateRoute>
+                      <WorkspaceFormPage />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/workspaces/legacy/edit/:id" element={
+                    <PrivateRoute>
+                      <WorkspaceFormPage />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/workspaces/legacy/:id" element={
                     <PrivateRoute>
                       <WorkspaceDetail />
                     </PrivateRoute>
                   } />
+                  
+                  {/* New Workspace Routes - Order matters! Most specific first */}
                   <Route path="/workspaces/new" element={
                     <PrivateRoute>
-                      <WorkspaceFormPage />
+                      <CreateWorkspacePage />
                     </PrivateRoute>
                   } />
-                  <Route path="/workspaces/edit/:id" element={
+                  <Route path="/workspaces/:id/edit" element={
                     <PrivateRoute>
-                      <WorkspaceFormPage />
+                      <EditWorkspacePage />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/workspaces/:id" element={
+                    <PrivateRoute>
+                      <WorkspaceDetailPage />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/workspaces" element={
+                    <PrivateRoute>
+                      <WorkspacesPage />
                     </PrivateRoute>
                   } />
                   
