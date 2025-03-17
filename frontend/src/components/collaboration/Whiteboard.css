@@ -1,0 +1,365 @@
+.whiteboard-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background-color: #f5f5f5;
+  overflow: hidden;
+  font-family: 'Roboto', Arial, sans-serif;
+}
+
+.whiteboard-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+  height: 56px;
+}
+
+.tool-group {
+  display: flex;
+  align-items: center;
+  margin-right: 24px;
+}
+
+.tool-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #5f6368;
+  margin: 0 4px;
+  transition: background-color 0.2s;
+}
+
+.tool-button:hover {
+  background-color: #f1f3f4;
+}
+
+.tool-button.active {
+  background-color: #e8f0fe;
+  color: #1a73e8;
+}
+
+.color-group {
+  display: flex;
+  align-items: center;
+  margin-right: 24px;
+}
+
+.color-presets {
+  display: flex;
+  margin-left: 8px;
+}
+
+.color-preset {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin: 0 4px;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  transition: transform 0.2s;
+}
+
+.color-preset:hover {
+  transform: scale(1.1);
+}
+
+.color-preset.active {
+  border: 2px solid #1a73e8;
+  transform: scale(1.1);
+}
+
+.width-group {
+  display: flex;
+  align-items: center;
+  margin-right: 24px;
+}
+
+.width-group label {
+  margin-right: 8px;
+  font-size: 14px;
+  color: #5f6368;
+}
+
+.width-group input {
+  width: 100px;
+}
+
+.width-group span {
+  margin-left: 8px;
+  font-size: 14px;
+  color: #5f6368;
+  min-width: 36px;
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  margin-right: 24px;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  border: none;
+  background-color: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #5f6368;
+  margin: 0 4px;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.action-button:hover {
+  background-color: #f1f3f4;
+}
+
+.action-button i {
+  margin-right: 8px;
+}
+
+.connection-status {
+  margin-left: auto;
+  font-size: 14px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 16px;
+  font-size: 12px;
+}
+
+.status.connected {
+  background-color: #e6f4ea;
+  color: #137333;
+}
+
+.status.connected::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #137333;
+  margin-right: 6px;
+}
+
+.status.disconnected {
+  background-color: #fce8e6;
+  color: #c5221f;
+}
+
+.status.disconnected::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #c5221f;
+  margin-right: 6px;
+}
+
+.canvas-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background-color: #fff;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+canvas {
+  display: block;
+  background-color: white;
+  cursor: crosshair;
+}
+
+/* Text formatting toolbar */
+.text-format-toolbar {
+  display: flex !important;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: white;
+  border-bottom: 1px solid #ddd;
+  z-index: 1000 !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.format-group {
+  display: flex !important;
+  align-items: center;
+  margin-right: 16px;
+}
+
+.format-button {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #5f6368;
+  margin: 0 2px;
+  transition: background-color 0.2s;
+}
+
+.format-button:hover {
+  background-color: #f1f3f4;
+}
+
+.format-button.active {
+  background-color: #e8f0fe;
+  color: #1a73e8;
+}
+
+.format-select {
+  display: block !important;
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  color: #5f6368;
+  margin: 0 4px;
+  min-width: 120px;
+  cursor: pointer;
+}
+
+/* Improve text input styling */
+.text-input-container {
+  position: absolute;
+  z-index: 1000 !important;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.2));
+}
+
+.text-input {
+  border: 1px solid #1a73e8;
+  background: rgba(255, 255, 255, 0.95);
+  min-width: 200px;
+  min-height: 40px;
+  padding: 10px;
+  outline: none;
+  resize: both;
+  overflow: auto;
+  font-family: inherit;
+  line-height: 1.4;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.text-input:focus {
+  border: 2px solid #1a73e8;
+  background-color: #ffffff;
+}
+
+/* Remove all Google Docs-like styles */
+.docs-header,
+.docs-title,
+.docs-menu,
+.docs-actions,
+.docs-share-button {
+  display: none;
+}
+
+/* Floating text format toolbar */
+.floating-text-format-toolbar {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex !important;
+  align-items: center;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  padding: 8px 16px;
+  z-index: 1000 !important;
+}
+
+/* AutoDraw-like floating tools panel */
+.floating-tools-panel {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+  z-index: 100;
+}
+
+.floating-tool-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background-color: transparent;
+  color: #5f6368;
+  cursor: pointer;
+  margin: 4px 0;
+  transition: all 0.2s;
+}
+
+.floating-tool-button:hover {
+  background-color: #f1f3f4;
+}
+
+.floating-tool-button.active {
+  background-color: #e8f0fe;
+  color: #1a73e8;
+}
+
+/* Color palette in AutoDraw style */
+.color-palette {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border-radius: 24px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 8px 16px;
+  z-index: 100;
+}
+
+.color-option {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin: 0 4px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.2s;
+}
+
+.color-option:hover {
+  transform: scale(1.2);
+}
+
+.color-option.active {
+  border-color: #1a73e8;
+  transform: scale(1.2);
+} 

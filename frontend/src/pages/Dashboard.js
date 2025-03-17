@@ -1,13 +1,13 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { getCourses } from '../api/courseApi';
 import { getWorkspaces } from '../api/workspaceApi';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     totalCourses: 0,
     completedItems: 0,

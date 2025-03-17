@@ -1,0 +1,57 @@
+.collaborative-editor {
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  min-height: 300px;
+}
+
+.editor-content {
+  padding: 16px;
+  min-height: 300px;
+  line-height: 1.5;
+}
+
+.editor-content p {
+  margin: 0 0 16px 0;
+}
+
+.editor-content h1 {
+  font-size: 2em;
+  margin: 24px 0 16px 0;
+}
+
+.editor-content h2 {
+  font-size: 1.5em;
+  margin: 20px 0 14px 0;
+}
+
+.editor-content h3 {
+  font-size: 1.25em;
+  margin: 16px 0 12px 0;
+}
+
+.editor-content ul,
+.editor-content ol {
+  margin: 16px 0;
+  padding-left: 24px;
+}
+
+.editor-content li {
+  margin-bottom: 8px;
+}
+
+.editor-content blockquote {
+  border-left: 4px solid #e2e8f0;
+  padding-left: 16px;
+  margin: 16px 0;
+  color: #4b5563;
+  font-style: italic;
+}
+
+.editor-content code {
+  background-color: #f1f5f9;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: monospace;
+} 

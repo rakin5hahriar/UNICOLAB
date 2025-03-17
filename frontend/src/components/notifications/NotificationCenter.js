@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { NotificationContext } from '../../context/NotificationContext';
+import { useNotification } from '../../context/NotificationContext';
 import { FaBell, FaCheck, FaTrash, FaCheckDouble } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
@@ -12,8 +12,8 @@ const NotificationCenter = () => {
     loading, 
     markAsRead, 
     markAllAsRead, 
-    deleteNotification 
-  } = useContext(NotificationContext);
+    removeNotification: deleteNotification 
+  } = useNotification();
   const navigate = useNavigate();
 
   const toggleNotificationPanel = () => {

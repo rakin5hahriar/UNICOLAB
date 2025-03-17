@@ -5,12 +5,21 @@ const User = require('../models/User');
 // @access  Public
 const register = async (req, res) => {
   try {
+    console.log('Register request received:', req.body);
+    
     const { name, email, password } = req.body;
+    
+    // Validate required fields
+    if (!name || !email || !password) {
+      console.log('Missing required fields:', { name: !!name, email: !!email, password: !!password });
+      return res.status(400).json({ message: 'Please provide name, email and password' });
+    }
 
     // Check if user already exists
     const userExists = await User.findOne({ email });
 
     if (userExists) {
+      console.log('User already exists with email:', email);
       return res.status(400).json({ message: 'User already exists' });
     }
 
@@ -20,6 +29,8 @@ const register = async (req, res) => {
       email,
       password,
     });
+    
+    console.log('User created successfully:', user._id);
 
     // Send token response
     sendTokenResponse(user, 201, res);
@@ -105,19 +116,30 @@ const logout = async (req, res) => {
 
 // Helper function to get token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
-  // Create token
-  const token = user.getSignedJwtToken();
-
-  res.status(statusCode).json({
-    success: true,
-    token,
-    user: {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isAdmin: user.isAdmin,
-    },
-  });
+  try {
+    // Create token
+    const token = user.getSignedJwtToken();
+    
+    console.log('Generated token for user:', user._id);
+    
+    const responseData = {
+      success: true,
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.isAdmin,
+      },
+    };
+    
+    console.log('Sending response:', { statusCode, success: true, hasToken: !!token, user: user._id });
+    
+    res.status(statusCode).json(responseData);
+  } catch (error) {
+    console.error('Error in sendTokenResponse:', error);
+    res.status(500).json({ message: 'Error generating authentication token' });
+  }
 };
 
 module.exports = {

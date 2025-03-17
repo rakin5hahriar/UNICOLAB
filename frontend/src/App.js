@@ -6,9 +6,10 @@ import './App.css';
 
 // Utils
 import { logApiStatus, checkApiConnection } from './utils/apiCheck';
+import socketService from './services/socketService';
 
 // Auth Context
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { CollaborationProvider } from './contexts/CollaborationContext';
 
@@ -35,6 +36,12 @@ import WorkspaceDetailPage from './pages/WorkspaceDetailPage';
 import CreateWorkspacePage from './pages/CreateWorkspacePage';
 import EditWorkspacePage from './pages/EditWorkspacePage';
 
+// Document Pages
+import DocumentsPage from './pages/DocumentsPage';
+import DocumentEditorPage from './pages/DocumentEditorPage';
+import CreateDocumentPage from './pages/CreateDocumentPage';
+import EditDocumentPage from './pages/EditDocumentPage';
+
 // Components
 import PrivateRoute from './components/routing/PrivateRoute';
 import WorkspaceItemFormPage from './pages/WorkspaceItemFormPage';
@@ -47,12 +54,15 @@ function App() {
     // Log API status on startup
     logApiStatus();
     
-    // Check API connection and show toast if not connected
+    // Check API connection and enter offline mode silently if needed
     checkApiConnection().then(isConnected => {
       if (!isConnected) {
-        toast.error('Cannot connect to the backend server. Please make sure it is running.', {
-          autoClose: false,
-        });
+        console.log('Cannot connect to the backend server. Working in offline mode silently.');
+        
+        // Enter offline mode automatically without showing toast
+        if (socketService && typeof socketService.enterOfflineMode === 'function') {
+          socketService.enterOfflineMode();
+        }
       }
     });
   }, []);
@@ -187,6 +197,33 @@ function App() {
                       <WorkspaceItemDetailPage />
                     </PrivateRoute>
                   } />
+                  
+                  {/* Document Routes */}
+                  <Route path="/documents" element={
+                    <PrivateRoute>
+                      <DocumentsPage />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/documents/new" element={
+                    <PrivateRoute>
+                      <CreateDocumentPage />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/documents/:id/edit" element={
+                    <PrivateRoute>
+                      <EditDocumentPage />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/documents/:id" element={
+                    <PrivateRoute>
+                      <DocumentEditorPage />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/workspaces/:workspaceId/documents/new" element={
+                    <PrivateRoute>
+                      <CreateDocumentPage />
+                    </PrivateRoute>
+                  } />
                 </Routes>
               </main>
               <Footer />
@@ -200,6 +237,7 @@ function App() {
                 pauseOnFocusLoss
                 draggable
                 pauseOnHover
+                limit={0} 
               />
             </div>
           </Router>

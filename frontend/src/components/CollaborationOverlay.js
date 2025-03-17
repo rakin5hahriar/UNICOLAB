@@ -31,12 +31,45 @@ const CursorOverlay = ({ userId, position, username }) => {
 };
 
 const CollaborationOverlay = ({ workspaceId }) => {
-    const { activeUsers, cursorPositions } = useCollaboration();
+    const context = useCollaboration();
+    
+    // If context is not available, render nothing
+    if (!context) return null;
+    
+    // Safely get activeUsers and cursorPositions from context
+    const { activeUsers, cursorPositions, offlineMode } = context;
+    
+    // If we're in offline mode, don't show cursors
+    if (offlineMode) return null;
+
+    // Safely get entries from activeUsers
+    const getActiveUserEntries = () => {
+        try {
+            if (!activeUsers || !(activeUsers instanceof Map)) return [];
+            return Array.from(activeUsers.entries());
+        } catch (error) {
+            console.error('Error getting activeUsers entries:', error);
+            return [];
+        }
+    };
+
+    // Safely get cursor position
+    const getCursorPosition = (userId) => {
+        try {
+            if (!cursorPositions || !(cursorPositions instanceof Map)) return null;
+            return cursorPositions.get(userId);
+        } catch (error) {
+            console.error('Error getting cursor position:', error);
+            return null;
+        }
+    };
 
     return (
         <div className="fixed inset-0 pointer-events-none">
-            {Array.from(activeUsers.entries()).map(([userId, user]) => {
-                const position = cursorPositions.get(userId);
+            {getActiveUserEntries().map(([userId, user]) => {
+                if (!user) return null;
+                
+                const position = getCursorPosition(userId);
                 if (!position) return null;
                 
                 return (
@@ -44,7 +77,7 @@ const CollaborationOverlay = ({ workspaceId }) => {
                         key={userId}
                         userId={userId}
                         position={position}
-                        username={user.username}
+                        username={user.username || 'Anonymous'}
                     />
                 );
             })}

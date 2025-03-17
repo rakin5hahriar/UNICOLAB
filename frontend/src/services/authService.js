@@ -1,11 +1,12 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// Use the proxy defined in package.json instead of hardcoding the URL
+const API_URL = '/api/auth';
 
 class AuthService {
     constructor() {
         this.api = axios.create({
-            baseURL: `${API_URL}/api/auth`,
+            baseURL: API_URL,
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -33,7 +34,14 @@ class AuthService {
     async register(userData) {
         try {
             console.log('Registering user:', userData);
-            const response = await this.api.post('/register', userData);
+            
+            // Make sure we're sending the data in the format the backend expects
+            const response = await this.api.post('/register', {
+                name: userData.name,
+                email: userData.email,
+                password: userData.password
+            });
+            
             console.log('Registration response:', response.data);
             
             if (response.data && response.data.token) {

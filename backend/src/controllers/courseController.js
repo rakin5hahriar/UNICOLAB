@@ -47,6 +47,11 @@ const createCourse = async (req, res) => {
   try {
     const { title, code, description, instructor, semester, year } = req.body;
 
+    // Validate required fields
+    if (!title) {
+      return res.status(400).json({ message: 'Course title is required' });
+    }
+
     const course = await Course.create({
       title,
       code,
@@ -59,7 +64,12 @@ const createCourse = async (req, res) => {
 
     res.status(201).json(course);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Course creation error:', error);
+    res.status(500).json({ 
+      message: error.message || 'Failed to create course',
+      error: error.toString(),
+      stack: process.env.NODE_ENV === 'production' ? null : error.stack
+    });
   }
 };
 

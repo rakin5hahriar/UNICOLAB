@@ -1,0 +1,161 @@
+.active-users-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.panel-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.users-list {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.no-users {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #6c757d;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  position: relative;
+}
+
+.user-item:hover {
+  background-color: #f8f9fa;
+}
+
+.user-item.current-user {
+  background-color: #e6f4ff;
+  border: 1px solid #91caff;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #1890ff;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 12px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.current-user .user-avatar {
+  background-color: #52c41a;
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-status {
+  font-size: 0.8em;
+  color: #6c757d;
+  margin-top: 2px;
+}
+
+.user-indicator {
+  margin-left: 10px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot.online {
+  background-color: #52c41a;
+  box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.2);
+}
+
+.status-dot.away {
+  background-color: #faad14;
+  box-shadow: 0 0 0 2px rgba(250, 173, 20, 0.2);
+}
+
+.status-dot.offline {
+  background-color: #ff4d4f;
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
+}
+
+.user-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: 8px;
+}
+
+.action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.action-btn.grant {
+  color: #52c41a;
+}
+
+.action-btn.grant:hover {
+  background-color: rgba(82, 196, 26, 0.1);
+}
+
+.action-btn.revoke {
+  color: #ff4d4f;
+}
+
+.action-btn.revoke:hover {
+  background-color: rgba(255, 77, 79, 0.1);
+} 

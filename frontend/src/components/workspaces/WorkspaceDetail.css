@@ -195,4 +195,36 @@
 .error-message {
   color: #ef4444;
   margin-bottom: 1.5rem;
+}
+
+/* Documents Section */
+.workspace-documents {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+.documents-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.documents-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.documents-description {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.documents-description p {
+  margin: 0;
 } 

@@ -1,6 +1,6 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import './Register.css';
@@ -18,8 +18,15 @@ const Register = () => {
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
   const [activeInput, setActiveInput] = useState(null);
   
-  const { register } = useContext(AuthContext);
+  const { register, user } = useAuth();
   const navigate = useNavigate();
+  
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,6 +34,10 @@ const Register = () => {
       ...formData,
       [name]: value,
     });
+    // Clear error when user starts typing
+    if (error) {
+      setError(null);
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -60,6 +71,12 @@ const Register = () => {
       setLoading(true);
       setError(null);
       
+      console.log('Submitting registration form with:', {
+        name: formData.name,
+        email: formData.email,
+        password: '****'
+      });
+      
       // Call register function from AuthContext
       const success = await register(formData.name, formData.email, formData.password);
       
@@ -69,7 +86,7 @@ const Register = () => {
       }
     } catch (err) {
       console.error('Registration error:', err);
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      setError(err.message || 'Registration failed. Please try again.');
       toast.error('Registration failed. Please try again.');
     } finally {
       setLoading(false);

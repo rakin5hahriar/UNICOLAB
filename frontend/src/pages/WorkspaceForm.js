@@ -138,7 +138,7 @@ const WorkspaceForm = () => {
             <option value="">Select a course</option>
             {courses.map((course) => (
               <option key={course._id} value={course._id}>
-                {course.name}
+                {course.title || 'Untitled Course'}
               </option>
             ))}
           </select>

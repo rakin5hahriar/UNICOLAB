@@ -1,0 +1,145 @@
+.workspace-document-list {
+  margin-top: 1rem;
+}
+
+.documents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.document-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid #f0f0f0;
+}
+
+.document-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.document-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: #4f46e5;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.document-info {
+  flex: 1;
+}
+
+.document-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-updated {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.document-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-icon:hover {
+  background-color: #f3f4f6;
+  color: #4f46e5;
+}
+
+.btn-icon.btn-danger:hover {
+  background-color: #fee2e2;
+  color: #ef4444;
+}
+
+.empty-documents {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px dashed #d1d5db;
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  color: #d1d5db;
+  margin-bottom: 1rem;
+}
+
+.empty-documents p {
+  margin: 0 0 1.5rem 0;
+  color: #6b7280;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  font-size: 1.5rem;
+  color: #4f46e5;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  color: #ef4444;
+} 

@@ -1,9 +1,9 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const Home = () => {
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
 
   return (
     <div className="bg-white">

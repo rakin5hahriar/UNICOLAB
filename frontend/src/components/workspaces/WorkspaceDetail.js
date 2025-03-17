@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { getWorkspaceById, deleteWorkspace, getWorkspaceItems } from '../../api/workspaceApi';
 import WorkspaceItemList from '../workspaceItems/WorkspaceItemList';
@@ -9,6 +9,10 @@ import ActiveUsers from '../ActiveUsers';
 import CommentSection from '../CommentSection';
 import '../../pages/WorkspacePage.css';
 
+// Global variable to track which workspaces have been joined
+// This prevents multiple join attempts across component remounts
+const joinedWorkspaces = new Set();
+
 const WorkspaceDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -17,38 +21,109 @@ const WorkspaceDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const { joinWorkspace, leaveWorkspace } = useCollaboration();
+  const { joinWorkspace, leaveWorkspace, enterOfflineMode } = useCollaboration();
+  const hasJoinedRef = useRef(false);
+  const joinAttemptTimeoutRef = useRef(null);
+  const fetchedRef = useRef(false);
 
+  // Single useEffect for fetching data and joining workspace
   useEffect(() => {
-    const fetchWorkspaceAndItems = async () => {
-      try {
-        setLoading(true);
-        const workspaceData = await getWorkspaceById(id);
-        setWorkspace(workspaceData);
+    // Only fetch data once
+    if (!fetchedRef.current) {
+      fetchedRef.current = true;
+      
+      const fetchWorkspaceAndItems = async () => {
+        try {
+          setLoading(true);
+          const workspaceData = await getWorkspaceById(id);
+          setWorkspace(workspaceData);
 
-        const itemsData = await getWorkspaceItems(id);
-        setItems(itemsData);
-
-        // Join the workspace collaboration
-        const user = JSON.parse(localStorage.getItem('user')); // Get the current user
-        if (user) {
-          joinWorkspace(id, user._id, user.name);
+          const itemsData = await getWorkspaceItems(id);
+          setItems(itemsData);
+          setLoading(false);
+        } catch (err) {
+          setError(err.message || 'Failed to fetch workspace details');
+          setLoading(false);
+          
+          // Enter offline mode on error
+          if (typeof enterOfflineMode === 'function') {
+            enterOfflineMode();
+          }
         }
-
-        setLoading(false);
-      } catch (err) {
-        setError(err.message || 'Failed to fetch workspace details');
-        setLoading(false);
+      };
+      
+      fetchWorkspaceAndItems();
+    }
+    
+    // Return cleanup function
+    return () => {};
+  }, [id, enterOfflineMode]);
+  
+  // Separate useEffect for joining workspace - runs only once
+  useEffect(() => {
+    // Only join if we haven't already joined this workspace
+    if (!hasJoinedRef.current && !joinedWorkspaces.has(id)) {
+      console.log(`Attempting to join workspace ${id} for the first time`);
+      hasJoinedRef.current = true;
+      joinedWorkspaces.add(id);
+      
+      // Clear any existing timeout
+      if (joinAttemptTimeoutRef.current) {
+        clearTimeout(joinAttemptTimeoutRef.current);
+      }
+      
+      // Join the workspace after a short delay
+      joinAttemptTimeoutRef.current = setTimeout(() => {
+        try {
+          const user = JSON.parse(localStorage.getItem('user'));
+          if (user) {
+            // Use a more unique ID to prevent duplicate notifications
+            const uniqueId = `${user._id || user.id}-${Date.now()}`;
+            console.log(`Joining workspace with ID: ${uniqueId}`);
+            
+            // Try to join the workspace
+            const joinSuccess = joinWorkspace(id, uniqueId, user.name);
+            
+            // If joining fails, enter offline mode
+            if (!joinSuccess) {
+              console.log('Failed to join workspace, entering offline mode');
+              if (typeof enterOfflineMode === 'function') {
+                enterOfflineMode();
+              }
+            }
+          } else {
+            // No user found, enter offline mode
+            console.log('No user found, entering offline mode');
+            if (typeof enterOfflineMode === 'function') {
+              enterOfflineMode();
+            }
+          }
+        } catch (error) {
+          console.error('Error joining workspace:', error);
+          if (typeof enterOfflineMode === 'function') {
+            enterOfflineMode();
+          }
+        }
+      }, 500);
+    }
+    
+    // Cleanup function to leave workspace
+    return () => {
+      // Clear any pending timeout
+      if (joinAttemptTimeoutRef.current) {
+        clearTimeout(joinAttemptTimeoutRef.current);
+        joinAttemptTimeoutRef.current = null;
+      }
+      
+      // Only leave if we've joined
+      if (hasJoinedRef.current) {
+        console.log(`Leaving workspace ${id}`);
+        leaveWorkspace(id);
+        hasJoinedRef.current = false;
+        joinedWorkspaces.delete(id);
       }
     };
-
-    fetchWorkspaceAndItems();
-
-    // Cleanup: Leave the workspace when component unmounts
-    return () => {
-      leaveWorkspace(id);
-    };
-  }, [id, joinWorkspace, leaveWorkspace]);
+  }, [id, joinWorkspace, leaveWorkspace, enterOfflineMode]);
 
   const handleDelete = async () => {
     try {

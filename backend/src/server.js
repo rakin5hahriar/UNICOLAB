@@ -12,6 +12,7 @@ const workspaceRoutes = require('./routes/workspaceRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const workspaceItemRoutes = require('./routes/workspaceItemRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const documentRoutes = require('./routes/documentRoutes');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 const { scheduleJobs } = require('./utils/notificationScheduler');
 const CollaborationService = require('./services/collaborationService');
@@ -24,9 +25,20 @@ const app = express();
 const server = http.createServer(app);
 
 // Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://localhost:3002'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Add request logging middleware
+// app.use((req, res, next) => {
+//   console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
+//   next();
+// });
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, '../uploads');
@@ -68,6 +80,7 @@ app.use('/api/workspaces', workspaceRoutes);
 app.use('/api/workspace-items', workspaceItemRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/documents', documentRoutes);
 
 // Error handling middleware for file uploads
 app.use((err, req, res, next) => {

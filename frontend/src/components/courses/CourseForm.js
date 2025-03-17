@@ -48,6 +48,8 @@ const CourseForm = () => {
     const errors = {};
     if (!formData.title.trim()) {
       errors.title = 'Course title is required';
+    } else if (formData.title.trim().length > 100) {
+      errors.title = 'Course title should be 100 characters or less';
     }
     
     if (formData.code && formData.code.length > 10) {
@@ -87,14 +89,27 @@ const CourseForm = () => {
     
     try {
       setLoading(true);
+      setError(null);
+      
+      // Ensure all fields are properly formatted
+      const courseData = {
+        ...formData,
+        title: formData.title.trim(),
+        code: formData.code.trim(),
+        description: formData.description.trim(),
+        instructor: formData.instructor.trim(),
+        year: formData.year ? parseInt(formData.year) : null
+      };
+      
       if (isAddMode) {
-        await createCourse(formData);
+        await createCourse(courseData);
       } else {
-        await updateCourse(id, formData);
+        await updateCourse(id, courseData);
       }
       setLoading(false);
       navigate('/courses');
     } catch (err) {
+      console.error('Form submission error:', err);
       setError(err.message || 'Failed to save course');
       setLoading(false);
     }

@@ -1,5 +1,5 @@
 const config = {
-  apiUrl: process.env.REACT_APP_API_URL || 'http://localhost:3000/api',
+  apiUrl: process.env.REACT_APP_API_URL || 'http://localhost:3000',
   uploadUrl: process.env.REACT_APP_UPLOAD_URL || 'http://localhost:3000/uploads',
   maxFileSize: 10 * 1024 * 1024, // 10MB
   supportedFileTypes: [

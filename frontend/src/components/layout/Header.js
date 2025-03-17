@@ -1,10 +1,10 @@
 import React, { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AuthContext } from '../../context/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import NotificationCenter from '../notifications/NotificationCenter';
 
 const Header = () => {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -37,6 +37,9 @@ const Header = () => {
                 </Link>
                 <Link to="/courses" className="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium">
                   Courses
+                </Link>
+                <Link to="/documents" className="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium">
+                  Documents
                 </Link>
                 <div className="ml-3 relative">
                   <NotificationCenter />
@@ -121,6 +124,12 @@ const Header = () => {
                 className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
               >
                 Courses
+              </Link>
+              <Link
+                to="/documents"
+                className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+              >
+                Documents
               </Link>
               <div className="pt-4 pb-3 border-t border-gray-200">
                 <div className="flex items-center px-4">

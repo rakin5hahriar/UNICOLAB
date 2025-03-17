@@ -13,13 +13,15 @@ import {
   FaSpinner, 
   FaExclamationTriangle,
   FaArrowLeft,
-  FaComment 
+  FaComment,
+  FaFileAlt
 } from 'react-icons/fa';
 import axios from 'axios';
 import config from '../config/config';
 import { useAuth } from '../context/AuthContext';
 import DeleteConfirmationModal from '../components/common/DeleteConfirmationModal';
 import CommentSection from '../components/CommentSection';
+import WorkspaceDocumentList from '../components/documents/WorkspaceDocumentList';
 import '../components/workspaces/WorkspaceDetail.css';
 
 const WorkspaceDetailPage = () => {
@@ -338,6 +340,23 @@ const WorkspaceDetailPage = () => {
                 ))}
               </div>
             )}
+          </div>
+          
+          {/* Documents Section */}
+          <div className="workspace-documents">
+            <div className="documents-header">
+              <h2>Documents</h2>
+              <button 
+                className="btn btn-primary btn-sm" 
+                onClick={() => navigate(`/workspaces/${workspaceId}/documents/new`)}
+              >
+                <FaPlus /> <FaFileAlt className="ml-1" /> Create Document
+              </button>
+            </div>
+            <div className="documents-description">
+              <p>Create and collaborate on documents in real-time with your team.</p>
+            </div>
+            <WorkspaceDocumentList workspaceId={workspaceId} />
           </div>
           
           {/* Add Comment Section */}

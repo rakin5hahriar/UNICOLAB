@@ -1,0 +1,159 @@
+.documents-container {
+  margin-top: 1.5rem;
+}
+
+.documents-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.documents-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.create-document-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.documents-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.document-item {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.document-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.document-info {
+  display: flex;
+  padding: 1rem;
+  cursor: pointer;
+  flex: 1;
+}
+
+.document-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-right: 1rem;
+  background-color: #f1f5f9;
+  border-radius: 0.25rem;
+  color: #3b82f6;
+}
+
+.document-details {
+  flex: 1;
+}
+
+.document-details h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.document-meta {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.document-meta span {
+  margin-bottom: 0.25rem;
+}
+
+.document-meta .collaborators {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.document-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5rem 1rem;
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.document-actions button {
+  margin-left: 0.5rem;
+}
+
+.no-documents {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.no-documents-icon {
+  font-size: 3rem;
+  color: #cbd5e1;
+  margin-bottom: 1rem;
+}
+
+.no-documents p {
+  margin-bottom: 1.5rem;
+  color: #64748b;
+}
+
+.documents-loading,
+.documents-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.documents-loading .spinner {
+  animation: spin 1s linear infinite;
+  font-size: 2rem;
+  color: #3b82f6;
+  margin-bottom: 1rem;
+}
+
+.documents-error {
+  color: #ef4444;
+}
+
+.documents-error svg {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+} 

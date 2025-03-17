@@ -1,0 +1,151 @@
+.document-editor-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 64px);
+  padding: 1rem;
+}
+
+.document-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.document-editor-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.document-editor-nav h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.document-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.saving-indicator {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.saving-indicator .spinner {
+  animation: spin 1s linear infinite;
+  margin-right: 0.5rem;
+}
+
+.document-editor-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+.collaborators-container {
+  position: relative;
+}
+
+.collaborator-form {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 300px;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.collaborator-form h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.collaborator-form form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.collaborator-form input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.collaborators-list {
+  margin-top: 1rem;
+}
+
+.collaborators-list h4 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.collaborators-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.collaborators-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.collaborators-list li:last-child {
+  border-bottom: none;
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
+  text-align: center;
+}
+
+.loading-container .spinner {
+  animation: spin 1s linear infinite;
+  font-size: 2rem;
+  color: #3b82f6;
+  margin-bottom: 1rem;
+}
+
+.error-container {
+  color: #ef4444;
+}
+
+.error-container svg {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+} 

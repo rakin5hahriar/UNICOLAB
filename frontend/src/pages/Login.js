@@ -1,6 +1,6 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import './Login.css';
@@ -16,7 +16,7 @@ const Login = () => {
   const [activeInput, setActiveInput] = useState(null);
   const [rememberMe, setRememberMe] = useState(false);
   
-  const { login, user } = useContext(AuthContext);
+  const { login, user } = useAuth();
   const navigate = useNavigate();
   
   // Redirect if already logged in

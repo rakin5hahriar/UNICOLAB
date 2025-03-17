@@ -1,9 +1,9 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { AuthContext } from '../../context/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const PrivateRoute = ({ children }) => {
-  const { user, loading } = useContext(AuthContext);
+  const { user, loading } = useAuth();
 
   // Show loading spinner while checking authentication
   if (loading) {

@@ -7,7 +7,7 @@ import {
   useOthers, 
   useBroadcastEvent,
   useEventListener
-} from '../../liveblocks.config';
+} from '../../liveblocks';
 import { nanoid } from 'nanoid';
 import './CollaborativeEditor.css';
 

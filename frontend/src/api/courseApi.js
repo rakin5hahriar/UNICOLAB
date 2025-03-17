@@ -77,11 +77,21 @@ export const getCourseById = async (id) => {
 
 export const createCourse = async (courseData) => {
   try {
+    console.log('Creating course with data:', courseData);
     const response = await api.post('/courses', courseData);
+    console.log('Course created successfully:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error creating course:', error);
-    throw new Error(error.response?.data?.message || 'Failed to create course');
+    console.error('Error response:', error.response?.data);
+    
+    // Extract the most useful error message
+    const errorMessage = 
+      error.response?.data?.message || 
+      error.message || 
+      'Failed to create course';
+      
+    throw new Error(errorMessage);
   }
 };
 
